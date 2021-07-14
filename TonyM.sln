@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TonyM", "TonyM\TonyM.csproj", "{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5F2C3C05-7ABB-477F-B714-B0072791EF81}"
-	ProjectSection(SolutionItems) = preProject
-		TexdsqdtFile1.cs = TexdsqdtFile1.cs
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
