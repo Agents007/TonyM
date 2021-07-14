@@ -20,7 +20,7 @@ namespace TonyM
 
     class Program
     {
-        //Récupére les infos via l'API Nvidia
+        // Récupére les infos via l'API Nvidia
         static string getGpuFromNvidia(string url)
         {
             var webClient = new WebClient();
@@ -38,7 +38,8 @@ namespace TonyM
             return json;
         }
 
-        //Désérialisation du Json
+
+        // Désérialisation du Json
         static List<CarteGraphique> GenerateGpu(string json)
         {
             var jsonParse = JObject.Parse(json);
@@ -55,62 +56,77 @@ namespace TonyM
             return result;
         }
 
-        //Initialisation
-        static void FirstStart()
+        // Constitution de la liste des GPU Visible via l'API
+        static List<string> GetGpuVisible(List<CarteGraphique> gpusApi) 
         {
-            Console.WriteLine("Salut c'est Tony, j'ai des contacts dans la Mafia\n");
-            Console.WriteLine("Quelle carte graphique recherche tu ?");
-            List<string> gpusChoice = new List<string>() { "3060TI", "3070", "3070TI", "3080", "3080TI", "3090" };
-
-            for (int i = 0; i < gpusChoice.Count; i++)
-            {
-                Console.WriteLine("Choix " + (i + 1) + " : " + gpusChoice[i]);
-            }
-
             List<string> gpus = new List<string>();
-            while (true)
+            foreach (var gpuApi in gpusApi)
             {
-                string gpu = Console.ReadLine();
-                if (string.IsNullOrEmpty(gpu))
-                {
-                    break;
-                }
-
-                if (gpu == "")
-                {
-                    Console.WriteLine("Erreur, merci d'entrer la référence d'une carte graphique");
-                }
-                else if (gpu.Length > 6) || (gpu.Length < é3) {  
-
-                }
+                gpus.Add(gpuApi.displayName);
             }
-
-            List<string> gpus = new List<string>();
-            //GetGpuWanted(gpus);
-            //return gpus;
-
+            return gpus;
         }
 
-        static void GetGpuWanted(List<string> gpus)
-        {
 
-  
-            string gpu = Console.ReadLine().Replace(" ", "").ToUpper();
-  
+
+        //Constitution de la liste des GPU Visible via l'API
+        static List<string> GetGpuWanted(List<string> gpusVisible)
+        {
+            List<string> gpus = new List<string>();
+
+
+            for (int i = 0; i < gpusVisible.Count; i++)
+            {
+                Console.WriteLine("Choix " + (i + 1) + " : " + gpusVisible[i]);
+            }
+            Console.WriteLine("Choix 10 : SELECTION TERMINEE\n");
+
 
             while (true)
             {
-                if (!gpu.StartsWith('3'))
+                string choice = Console.ReadLine();
+                try
                 {
-                    Console.WriteLine("Nop dsl");
+                    int choiceInt = int.Parse(choice);
+                    if ((choiceInt > 0) && (choiceInt < (gpusVisible.Count + 1)))
+                    {
+                        if (gpus.Contains(gpusVisible[choiceInt - 1]))
+                        {
+                            Console.WriteLine("Ce GPU fait déjà partis de votre sélection\n");
+                        } 
+                        else
+                        {
+                            gpus.Add(gpusVisible[choiceInt - 1]);
+                            Console.WriteLine(gpusVisible[choiceInt - 1] + " ajoutée à la liste, voulez vous ajouter une autre carte ?\n");
+                        }
+                    }
+                    else if ((choiceInt  == 10) && (gpus.Count > 0))
+                    {
+                        break;    
+                    }
+                    else
+                    {
+                        Console.WriteLine("Votre choix n'est pas valide\n");
+                    }
                 }
-                else
+                catch (Exception)
                 {
-                    gpus.Add(gpu);
-                    Console.WriteLine(gpu + " est bien ajouté à la liste");
+                    Console.WriteLine("Erreur : Vous devez entrer un nombre\n");
                 }
             }
+
+
+            Console.WriteLine("\nVotre sélection est la suivante :");
+            foreach (var gpu in gpus)
+            {
+                Console.WriteLine("- " + gpu);
+            }
+            Console.WriteLine("\nSi un gpu est disponible, Tony ouvrira la page web correspondante");
+
+
+            return gpus;
         }
+
 
 
 
@@ -119,52 +135,32 @@ namespace TonyM
         {
             const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&manufacturer=NVIDIA&manufacturer_filter=NVIDIA~1";
 
-            FirstStart();
+
             string json = getGpuFromNvidia(url);
             var gpus = GenerateGpu(json);
 
-            //List<string> gpusWanted = new List<string>() { "NVIDIA RTX 3070", "NVIDIA RTX 3090" };
-            //var gpusFilter = gpus.Where(g => gpusWanted.Any(w => w == g.displayName)).ToList();
+            Console.WriteLine("Salut c'est Tony, j'ai des contacts dans la Mafia\n\nQuelle carte graphique recherche tu ?");
 
-            //List<string> gpusWanted = new List<string>();
-            //while (true)
-            //{
-            //    string gpu = Console.ReadLine();
-            //    if (string.IsNullOrEmpty(gpu))
-            //    {
-            //        break;
-            //    }
+            var gpusVisible = GetGpuVisible(gpus);
 
-            //    if (gpu == "")
-            //    {
-            //        Console.WriteLine("Erreur, merci d'entrer la référence d'une carte graphique");
-            //    }
-            //    else if (gpu.Length > 6) || (gpu.Length < 3) {
+            var gpusWanted = GetGpuWanted(gpusVisible);
 
-            //    }
-            //}
+            var gpusFilter = gpus.Where(g => gpusWanted.Any(w => w == g.displayName)).ToList();
 
 
-
-            //foreach (var gpu in start)
-            //{
-            //    Console.WriteLine(gpu);
-            //}
+            var uri = "https://www.google.com";
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            psi.UseShellExecute = true;
+            psi.FileName = uri;
+            System.Diagnostics.Process.Start(psi);
 
 
 
 
-
-
-
-            //int nbGpu = 0;
-            //foreach (var gpu in gpus)
-            //{
-            //    nbGpu++;
-            //    Console.WriteLine(gpu.displayName + " - " + gpu.prdStatus + " - " + gpu.directPurchaseLink);
-            //}
-
-            //Console.WriteLine(nbGpu + " références");
+            foreach (var gpu in gpusFilter)
+            {
+                Console.WriteLine(gpu.displayName + " - " + gpu.prdStatus + " - " + gpu.directPurchaseLink);
+            }
 
 
         }
