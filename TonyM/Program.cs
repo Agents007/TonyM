@@ -59,19 +59,44 @@ namespace TonyM
         static void FirstStart()
         {
             Console.WriteLine("Salut c'est Tony, j'ai des contacts dans la Mafia\n");
+            Console.WriteLine("Quelle carte graphique recherche tu ?");
+            List<string> gpusChoice = new List<string>() { "3060TI", "3070", "3070TI", "3080", "3080TI", "3090" };
 
-            //List<string> gpus = new List<string>();
+            for (int i = 0; i < gpusChoice.Count; i++)
+            {
+                Console.WriteLine("Choix " + (i + 1) + " : " + gpusChoice[i]);
+            }
+
+            List<string> gpus = new List<string>();
+            while (true)
+            {
+                string gpu = Console.ReadLine();
+                if (string.IsNullOrEmpty(gpu))
+                {
+                    break;
+                }
+
+                if (gpu == "")
+                {
+                    Console.WriteLine("Erreur, merci d'entrer la référence d'une carte graphique");
+                }
+                else if (gpu.Length > 6) || (gpu.Length < é3) {  
+
+                }
+            }
+
+            List<string> gpus = new List<string>();
             //GetGpuWanted(gpus);
             //return gpus;
-
 
         }
 
         static void GetGpuWanted(List<string> gpus)
         {
 
-            Console.WriteLine("Quelle carte graphique recherche tu ? Exemple : mettre 3080 ou 3080ti (ENTER pour terminer)");
-            string gpu = Console.ReadLine(); //.Replace(" ", "").ToUpper();
+  
+            string gpu = Console.ReadLine().Replace(" ", "").ToUpper();
+  
 
             while (true)
             {
@@ -84,29 +109,6 @@ namespace TonyM
                     gpus.Add(gpu);
                     Console.WriteLine(gpu + " est bien ajouté à la liste");
                 }
-
-
-
-
-                //if (string.IsNullOrEmpty(gpu)) {
-                //    break;
-                //}
-                //if (string.IsNullOrWhiteSpace(gpu) && (gpus.Count == 0))
-                //{
-                //    Console.WriteLine("Vous n'avez sélectionner aucun GPU");
-                //    GetGpuWanted(gpus);
-                //}
-                //else if (gpus.Contains(gpu))
-                //{
-                //    Console.WriteLine("Carte graphique déjà dans la liste");
-                //    GetGpuWanted(gpus);
-                //}
-                //else if (!string.IsNullOrWhiteSpace(gpu))
-                //{
-                //    gpus.Add(gpu);
-                //    Console.WriteLine(gpu + " est bien ajouté à la liste");
-                //    GetGpuWanted(gpus);
-                //}
             }
         }
 
@@ -124,19 +126,23 @@ namespace TonyM
             //List<string> gpusWanted = new List<string>() { "NVIDIA RTX 3070", "NVIDIA RTX 3090" };
             //var gpusFilter = gpus.Where(g => gpusWanted.Any(w => w == g.displayName)).ToList();
 
-            List<string> gpusWanted = new List<string>();
-            while (true)
-            {
-                string gpu = Console.ReadLine();
-                if (!string.IsNullOrEmpty(gpu))
-                {
-                    gpusWanted.Add(gpu);
-                }
-                else
-                {
-                    break;
-                }
-            }
+            //List<string> gpusWanted = new List<string>();
+            //while (true)
+            //{
+            //    string gpu = Console.ReadLine();
+            //    if (string.IsNullOrEmpty(gpu))
+            //    {
+            //        break;
+            //    }
+
+            //    if (gpu == "")
+            //    {
+            //        Console.WriteLine("Erreur, merci d'entrer la référence d'une carte graphique");
+            //    }
+            //    else if (gpu.Length > 6) || (gpu.Length < 3) {
+
+            //    }
+            //}
 
 
 
