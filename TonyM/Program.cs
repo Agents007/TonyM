@@ -130,7 +130,6 @@ namespace TonyM
 
         static void DisplayGpuWanted(List<string> gpuWanted)
         {
-
             Console.Write("VOTRE SELECTION -> ");
             Console.WriteLine(String.Join(", ", gpuWanted));
         }
@@ -150,6 +149,7 @@ namespace TonyM
                     if (gpu.prdStatus != "out_of_stock")
                     {
                         OpenBuyPage(gpu.directPurchaseLink);
+                        gpusWanted.Remove(gpu.displayName);
                     }
                     else
                     {
@@ -169,18 +169,45 @@ namespace TonyM
             const int refresh = 3000;
 
             string json = getGpuFromNvidia(url);
+
             var gpus = GenerateGpu(json);
 
-            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
+            var jsonObj = JsonConvert.DeserializeObject<NvidiaRoot>(json);
 
-            var gpusVisible = GetGpuVisible(gpus);
-            var gpusWanted = GetGpuWanted(gpusVisible);
+            var productDetails = jsonObj.searchedProducts.productDetails
+                .Where(n => n.isFounderEdition)
+                .Select(p => new
+                {
+                    displayName = p.displayName,
+                    prdStatus = p.prdStatus,
+                    directPurchaseLink = p.retailers[0].directPurchaseLink
+                })
+                .ToList();
 
-            Console.WriteLine();
-            Console.WriteLine("Merci, je consulte Laurent");
-            //DisplayGpuWanted(gpusWanted);
+            var featuredProduct = jsonObj.searchedProducts.featuredProduct;
+            var result = new
+            {
+                displayName = featuredProduct.displayName,
+                prdStatus = featuredProduct.prdStatus,
+                directPurchaseLink = featuredProduct.retailers[0].directPurchaseLink
+            };
 
-            SearchGpu(refresh, gpus, gpusWanted);
+            productDetails.Add(result);
+            foreach (var item in productDetails)
+            {
+                Console.WriteLine(item.displayName);
+            }
+
+
+            //Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
+
+            //var gpusVisible = GetGpuVisible(gpus);
+            //var gpusWanted = GetGpuWanted(gpusVisible);
+
+            //Console.WriteLine();
+            //Console.WriteLine("Merci, je consulte Laurent");
+
+            //SearchGpu(refresh, gpus, gpusWanted);
 
 
 
@@ -189,7 +216,7 @@ namespace TonyM
 
 
 
-            
+
 
 
 
