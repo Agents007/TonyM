@@ -96,8 +96,7 @@ namespace TonyM
         public string value { get; set; }
     }
 
-    public class FeaturedProduct
-    {
+    public class ProductDetail {
         public string displayName { get; set; }
         public int totalCount { get; set; }
         public int productID { get; set; }
@@ -109,7 +108,7 @@ namespace TonyM
         public string productUPCOriginal { get; set; }
         public string productPrice { get; set; }
         public bool productAvailable { get; set; }
-        public object productRating { get; set; }
+
         public object customerReviewCount { get; set; }
         public bool isFounderEdition { get; set; }
         public bool isFeaturedProduct { get; set; }
@@ -131,39 +130,10 @@ namespace TonyM
         public List<CompareProductInfo> compareProductInfo { get; set; }
     }
 
-    public class ProductDetail
+
+    public class FeaturedProduct : ProductDetail
     {
-        public string displayName { get; set; }
-        public int totalCount { get; set; }
-        public int productID { get; set; }
-        public string imageURL { get; set; }
-        public string productTitle { get; set; }
-        public string digitialRiverID { get; set; }
-        public string productSKU { get; set; }
-        public string productUPC { get; set; }
-        public string productUPCOriginal { get; set; }
-        public string productPrice { get; set; }
-        public bool productAvailable { get; set; }
-        public object productRating { get; set; }
-        public object customerReviewCount { get; set; }
-        public bool isFounderEdition { get; set; }
-        public bool isFeaturedProduct { get; set; }
-        public bool certified { get; set; }
-        public string manufacturer { get; set; }
-        public string locale { get; set; }
-        public bool isFeaturedProdcutFoundInSecondSearch { get; set; }
-        public string category { get; set; }
-        public string gpu { get; set; }
-        public string purchaseOption { get; set; }
-        public string prdStatus { get; set; }
-        public object minShipDays { get; set; }
-        public object maxShipDays { get; set; }
-        public object shipInfo { get; set; }
-        public bool isOffer { get; set; }
-        public string offerText { get; set; }
-        public List<Retailer> retailers { get; set; }
-        public List<ProductInfo> productInfo { get; set; }
-        public List<CompareProductInfo> compareProductInfo { get; set; }
+
     }
 
     public class SearchedProducts

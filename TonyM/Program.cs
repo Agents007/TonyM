@@ -8,16 +8,6 @@ using System.Threading;
 
 namespace TonyM
 {
-
-    public class CarteGraphique
-    {
-        public string displayName { get; set; }
-        public string prdStatus { get; set; }
-        public string directPurchaseLink { get; set; }
-    }
-
-
-
     class Program
     {
         // Récupére les infos via l'API Nvidia
@@ -48,21 +38,15 @@ namespace TonyM
                 .Where(n => n.isFounderEdition)
                 .ToList();
 
-            //var featuredProduct = jsonObj.searchedProducts.featuredProduct;
-            //var featuredProductItem = new
-            //{
-            //    displayName = featuredProduct.displayName,
-            //    prdStatus = featuredProduct.prdStatus,
-            //    directPurchaseLink = featuredProduct.retailers[0].directPurchaseLink
-            //};
+            var featuredProduct = jsonObj.searchedProducts.featuredProduct;
 
-            //gpuList.Add(featuredProductItem);
+            gpuList.Add(featuredProduct);
 
             return gpuList;
         }
 
         // Constitution de la liste des GPU Visible via l'API
-        static List<string> GetGpuVisible(List<CarteGraphique> gpusApi) 
+        static List<string> GetGpuVisible(List<ProductDetail> gpusApi) 
         {
             List<string> gpus = new List<string>();
             foreach (var gpuApi in gpusApi)
@@ -138,7 +122,7 @@ namespace TonyM
             Console.WriteLine(String.Join(", ", gpuWanted));
         }
 
-        static void SearchGpu(int refresh, List<CarteGraphique> gpus, List<string> gpusWanted)
+        static void SearchGpu(int refresh, List<ProductDetail> gpus, List<string> gpusWanted)
         {
             while (true)
             {
@@ -152,7 +136,13 @@ namespace TonyM
                 {
                     if (gpu.prdStatus != "out_of_stock")
                     {
-                        OpenBuyPage(gpu.directPurchaseLink);
+                        string link = "";
+                        foreach (var item in gpu.retailers)
+                        {
+                            link = item.directPurchaseLink;
+                        }
+
+                        OpenBuyPage(link);
                         gpusWanted.Remove(gpu.displayName);
                     }
                     else
@@ -172,41 +162,18 @@ namespace TonyM
             const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
             const int refresh = 3000;
 
-
-
             string json = getGpuFromNvidia(url);
-
-
-
-
             var gpus = GenerateGpu(json);
 
+            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
 
+            var gpusVisible = GetGpuVisible(gpus);
+            var gpusWanted = GetGpuWanted(gpusVisible);
 
+            Console.WriteLine();
+            Console.WriteLine("Merci, je consulte Laurent");
 
-            //Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
-
-            //var gpusVisible = GetGpuVisible(gpus);
-            //var gpusWanted = GetGpuWanted(gpusVisible);
-
-            //Console.WriteLine();
-            //Console.WriteLine("Merci, je consulte Laurent");
-
-            //SearchGpu(refresh, gpus, gpusWanted);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            SearchGpu(refresh, gpus, gpusWanted);
 
         }
     }
