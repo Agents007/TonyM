@@ -4,10 +4,20 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace TonyM
 {
+    public class CarteGraphique
+    {
+        public string displayName { get; set; }
+        [JsonPropertyName("prdStatus")]
+        public string PrdStatus { get; set; }
+
+        public List<Retailer> retailers { get; set; }
+    }
+
     class Program
     {
         // Récupére les infos via l'API Nvidia
@@ -163,17 +173,69 @@ namespace TonyM
             const int refresh = 3000;
 
             string json = getGpuFromNvidia(url);
-            var gpus = GenerateGpu(json);
 
-            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
+            DateTime t1 = DateTime.Now;
 
-            var gpusVisible = GetGpuVisible(gpus);
-            var gpusWanted = GetGpuWanted(gpusVisible);
 
-            Console.WriteLine();
-            Console.WriteLine("Merci, je consulte Laurent");
 
-            SearchGpu(refresh, gpus, gpusWanted);
+            var listGpu = new List<CarteGraphique>();
+
+            var jsonParse = JsonDocument.Parse(json);
+
+            var jsonFilter = jsonParse.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("featuredProduct")
+                .GetRawText();
+
+            var jsonObj = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter);
+
+            listGpu.Add(jsonObj);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            foreach (var item in listGpu)
+            {
+                Console.WriteLine(item.displayName);
+                Console.WriteLine(item.PrdStatus);
+                foreach (var it in item.retailers)
+                {
+                    Console.WriteLine(it.directPurchaseLink);
+                }
+            }
+
+
+
+
+            DateTime t2 = DateTime.Now;
+            var diff = (int)((t2 - t1).TotalMilliseconds);
+            Console.WriteLine("durée " + diff);
+
+
+            //var gpus = GenerateGpu(json);
+
+            //Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
+
+            //var gpusVisible = GetGpuVisible(gpus);
+            //var gpusWanted = GetGpuWanted(gpusVisible);
+
+            //Console.WriteLine();
+            //Console.WriteLine("Merci, je consulte Laurent");
+
+            //SearchGpu(refresh, gpus, gpusWanted);
 
         }
     }
