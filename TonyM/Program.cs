@@ -12,8 +12,8 @@ namespace TonyM
     public class CarteGraphique
     {
         public string displayName { get; set; }
-        [JsonPropertyName("prdStatus")]
-        public string PrdStatus { get; set; }
+
+        public string prdStatus { get; set; }
 
         public List<Retailer> retailers { get; set; }
     }
@@ -188,12 +188,30 @@ namespace TonyM
                 .GetRawText();
 
             var jsonObj = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter);
-            var jsonObj2 = jsonParse.RootElement.GetProperty("searchedProducts").GetProperty("productDetails").EnumerateArray();
-            foreach (var item in jsonObj2)
+
+            listGpu.Add(jsonObj);
+
+
+            var jsonFilter2 = jsonParse.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("productDetails")
+                .Gat
+
+            var jsonObj2 = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter2);
+
+            listGpu.Add(jsonObj2);
+
+
+
+
+
+
+
+
+            foreach (var item in listGpu)
             {
-                Console.WriteLine(item);
+                Console.WriteLine(item.displayName);
             }
-            Console.WriteLine(jsonObj2);
 
 
             //listGpu.Add(jsonObj);
