@@ -188,34 +188,27 @@ namespace TonyM
                 .GetRawText();
 
             var jsonObj = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter);
-
-            listGpu.Add(jsonObj);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            foreach (var item in listGpu)
+            var jsonObj2 = jsonParse.RootElement.GetProperty("searchedProducts").GetProperty("productDetails").EnumerateArray();
+            foreach (var item in jsonObj2)
             {
-                Console.WriteLine(item.displayName);
-                Console.WriteLine(item.PrdStatus);
-                foreach (var it in item.retailers)
-                {
-                    Console.WriteLine(it.directPurchaseLink);
-                }
+                Console.WriteLine(item);
             }
+            Console.WriteLine(jsonObj2);
+
+
+            //listGpu.Add(jsonObj);
+
+
+
+            //foreach (var item in listGpu)
+            //{
+            //    Console.WriteLine(item.displayName);
+            //    Console.WriteLine(item.PrdStatus);
+            //    foreach (var it in item.retailers)
+            //    {
+            //        Console.WriteLine(it.directPurchaseLink);
+            //    }
+            //}
 
 
 
