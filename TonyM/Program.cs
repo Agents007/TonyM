@@ -58,23 +58,34 @@ namespace TonyM
 
 
         // Désérialisation du Json
-        static List<ProductDetail> GenerateGpu(string json)
+        static List<CarteGraphique> GenerateGpu(string json)
         {
-            NvidiaRoot jsonObj = JsonSerializer.Deserialize<NvidiaRoot>(json);
 
-            var gpuList = jsonObj.searchedProducts.productDetails
-                .Where(n => n.isFounderEdition)
+            using var jsonParse = JsonDocument.Parse(json); // Be sure to dispose the JsonDocument!
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var products = jsonParse.RootElement
+                .GetProperty("searchedProducts") // Get the searchedProducts value
+                .GetProperty("productDetails")   // Get the productDetails value
+                .EnumerateArray()                // Enumerate its items
+                .Where(n => n.GetProperty("isFounderEdition").GetBoolean()) // Filter on those for which isFounderEdition == true
+                .Select(n => n.ToObject<CarteGraphique>(options)) // Deserialize to a CarteGraphique
                 .ToList();
 
-            var featuredProduct = jsonObj.searchedProducts.featuredProduct;
+            // Add the searchedProducts.featuredProduct item to the list.
+            var featuredProduct = jsonParse.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("featuredProduct")
+                .ToObject<CarteGraphique>(options);
 
-            gpuList.Add(featuredProduct);
+            products.Add(featuredProduct);
 
-            return gpuList;
+            return products;
         }
 
         // Constitution de la liste des GPU Visible via l'API
-        static List<string> GetGpuVisible(List<ProductDetail> gpusApi) 
+        static List<string> GetGpuVisible(List<CarteGraphique> gpusApi) 
         {
             List<string> gpus = new List<string>();
             foreach (var gpuApi in gpusApi)
@@ -150,7 +161,7 @@ namespace TonyM
             Console.WriteLine(String.Join(", ", gpuWanted));
         }
 
-        static void SearchGpu(int refresh, List<ProductDetail> gpus, List<string> gpusWanted)
+        static void SearchGpu(int refresh, List<CarteGraphique> gpus, List<string> gpusWanted)
         {
             while (true)
             {
@@ -169,7 +180,6 @@ namespace TonyM
                         {
                             link = item.directPurchaseLink;
                         }
-
                         OpenBuyPage(link);
                         gpusWanted.Remove(gpu.displayName);
                     }
@@ -192,78 +202,17 @@ namespace TonyM
 
             string json = getGpuFromNvidia(url);
 
-            DateTime t1 = DateTime.Now;
+            var gpus = GenerateGpu(json);
 
+            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
 
+            var gpusVisible = GetGpuVisible(gpus);
+            var gpusWanted = GetGpuWanted(gpusVisible);
 
-            var listGpu = new List<CarteGraphique>();
+            Console.WriteLine();
+            Console.WriteLine("Merci, je consulte Laurent");
 
-            using var jsonParse = JsonDocument.Parse(json); // Be sure to dispose the JsonDocument!
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-            var products = jsonParse.RootElement
-                .GetProperty("searchedProducts") // Get the searchedProducts value
-                .GetProperty("productDetails")   // Get the productDetails value
-                .EnumerateArray()                // Enumerate its items
-                .Where(n => n.GetProperty("isFounderEdition").GetBoolean()) // Filter on those for which isFounderEdition == true
-                .Select(n => n.ToObject<CarteGraphique>(options)) // Deserialize to a CarteGraphique
-                .ToList();
-
-            // Add the searchedProducts.featuredProduct item to the list.
-            var featuredProduct = jsonParse.RootElement
-                .GetProperty("searchedProducts")
-                .GetProperty("featuredProduct")
-                .ToObject<CarteGraphique>(options);
-
-            products.Add(featuredProduct);
-
-
-
-
-
-
-
-
-            foreach (var item in products)
-            {
-                Console.WriteLine(item.displayName);
-            }
-
-
-            //listGpu.Add(jsonObj);
-
-
-
-            //foreach (var item in listGpu)
-            //{
-            //    Console.WriteLine(item.displayName);
-            //    Console.WriteLine(item.PrdStatus);
-            //    foreach (var it in item.retailers)
-            //    {
-            //        Console.WriteLine(it.directPurchaseLink);
-            //    }
-            //}
-
-
-
-
-            DateTime t2 = DateTime.Now;
-            var diff = (int)((t2 - t1).TotalMilliseconds);
-            Console.WriteLine("durée " + diff);
-
-
-            //var gpus = GenerateGpu(json);
-
-            //Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
-
-            //var gpusVisible = GetGpuVisible(gpus);
-            //var gpusWanted = GetGpuWanted(gpusVisible);
-
-            //Console.WriteLine();
-            //Console.WriteLine("Merci, je consulte Laurent");
-
-            //SearchGpu(refresh, gpus, gpusWanted);
+            SearchGpu(refresh, gpus, gpusWanted);
 
         }
     }
