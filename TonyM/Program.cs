@@ -39,7 +39,13 @@ namespace TonyM
     class Program
     {
         // Récupére les infos via l'API Nvidia
-        static string getGpuFromNvidia(string url)
+        //static string getGpuFromNvidia(string url)
+        //{
+        //}
+
+
+        // Désérialisation du Json
+        static List<CarteGraphique> GenerateGpu(string url)
         {
             var webClient = new WebClient();
 
@@ -51,15 +57,7 @@ namespace TonyM
             catch (Exception ex)
             {
                 Console.WriteLine("Erreur : " + ex.Message);
-                return getGpuFromNvidia(url); // A corriger pour un retour aux lancement de l'application
             }
-            return json;
-        }
-
-
-        // Désérialisation du Json
-        static List<CarteGraphique> GenerateGpu(string json)
-        {
 
             using var jsonParse = JsonDocument.Parse(json); // Be sure to dispose the JsonDocument!
 
@@ -85,21 +83,31 @@ namespace TonyM
         }
 
         // Constitution de la liste des GPU Visible via l'API
-        static List<string> GetGpuVisible(List<CarteGraphique> gpusApi) 
-        {
-            List<string> gpus = new List<string>();
-            foreach (var gpuApi in gpusApi)
-            {
-                gpus.Add(gpuApi.displayName);
-            }
-            return gpus;
-        }
+        //static List<string> GetGpuVisible(List<CarteGraphique> gpusApi) 
+        //{
+        //    List<string> gpusSelect = new List<string>();
+        //    foreach (var gpuApi in gpusApi)
+        //    {
+        //        gpusSelect.Add(gpuApi.displayName);
+        //    }
+        //    return gpusSelect;
+        //}
 
 
 
         //Constitution de la liste des GPU Visible via l'API
-        static List<string> GetGpuWanted(List<string> gpusVisible)
+        static List<string> GetGpuWanted(List<CarteGraphique> gpusApi)
         {
+
+            List<string> gpusVisible = new List<string>();
+            foreach (var gpuApi in gpusApi)
+            {
+                gpusVisible.Add(gpuApi.displayName);
+            }
+
+
+
+
             List<string> gpus = new List<string>();
 
 
@@ -200,17 +208,18 @@ namespace TonyM
             const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
             const int refresh = 3000;
 
-            string json = getGpuFromNvidia(url);
 
-            var gpus = GenerateGpu(json);
+            var gpus = GenerateGpu(url);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
 
-            var gpusVisible = GetGpuVisible(gpus);
-            var gpusWanted = GetGpuWanted(gpusVisible);
+
+            var gpusWanted = GetGpuWanted(gpus);
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
+
+
 
             SearchGpu(refresh, gpus, gpusWanted);
 
