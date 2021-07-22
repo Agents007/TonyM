@@ -58,7 +58,7 @@ namespace TonyM
                 Console.WriteLine("Erreur : " + ex.Message);
             }
 
-            using var jsonParse = JsonDocument.Parse(json); 
+            var jsonParse = JsonDocument.Parse(json); 
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
