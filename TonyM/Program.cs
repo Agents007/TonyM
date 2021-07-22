@@ -18,6 +18,24 @@ namespace TonyM
         public List<Retailer> retailers { get; set; }
     }
 
+    public static partial class JsonExtensions
+    {
+        public static T ToObject<T>(this JsonElement element, JsonSerializerOptions options = null)
+        {
+            var bufferWriter = new System.Buffers.ArrayBufferWriter<byte>();
+            using (var writer = new Utf8JsonWriter(bufferWriter))
+                element.WriteTo(writer);
+            return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
+        }
+
+        public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions options = null)
+        {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+            return document.RootElement.ToObject<T>(options);
+        }
+    }
+
     class Program
     {
         // Récupére les infos via l'API Nvidia
@@ -180,26 +198,25 @@ namespace TonyM
 
             var listGpu = new List<CarteGraphique>();
 
-            var jsonParse = JsonDocument.Parse(json);
+            using var jsonParse = JsonDocument.Parse(json); // Be sure to dispose the JsonDocument!
 
-            var jsonFilter = jsonParse.RootElement
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var products = jsonParse.RootElement
+                .GetProperty("searchedProducts") // Get the searchedProducts value
+                .GetProperty("productDetails")   // Get the productDetails value
+                .EnumerateArray()                // Enumerate its items
+                .Where(n => n.GetProperty("isFounderEdition").GetBoolean()) // Filter on those for which isFounderEdition == true
+                .Select(n => n.ToObject<CarteGraphique>(options)) // Deserialize to a CarteGraphique
+                .ToList();
+
+            // Add the searchedProducts.featuredProduct item to the list.
+            var featuredProduct = jsonParse.RootElement
                 .GetProperty("searchedProducts")
                 .GetProperty("featuredProduct")
-                .GetRawText();
+                .ToObject<CarteGraphique>(options);
 
-            var jsonObj = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter);
-
-            listGpu.Add(jsonObj);
-
-
-            var jsonFilter2 = jsonParse.RootElement
-                .GetProperty("searchedProducts")
-                .GetProperty("productDetails")
-                .Gat
-
-            var jsonObj2 = JsonSerializer.Deserialize<CarteGraphique>(jsonFilter2);
-
-            listGpu.Add(jsonObj2);
+            products.Add(featuredProduct);
 
 
 
@@ -208,7 +225,7 @@ namespace TonyM
 
 
 
-            foreach (var item in listGpu)
+            foreach (var item in products)
             {
                 Console.WriteLine(item.displayName);
             }
