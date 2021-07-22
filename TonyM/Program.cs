@@ -43,7 +43,7 @@ namespace TonyM
             Console.WriteLine(String.Join(", ", gpuWanted));
         }
 
-        //Récupération API et Deserialisation obj
+        // Récupération API et Deserialisation obj
         static List<GraphicsCard> GenerateGpu(string url)
         {
             var webClient = new WebClient();
@@ -83,7 +83,7 @@ namespace TonyM
 
 
 
-        //Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
+        // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
         static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
         {
 
@@ -140,7 +140,7 @@ namespace TonyM
         }
 
 
-
+        // Check si le gpu est en stock
         static void SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
         {
             DisplayGpuWanted(gpusWanted);
