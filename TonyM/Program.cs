@@ -40,7 +40,7 @@ namespace TonyM
         static void DisplayGpuWanted(List<string> gpuWanted)
         {
             Console.Write("-- VOTRE SELECTION --\n");
-            Console.WriteLine(String.Join(", ", gpuWanted));
+            Console.WriteLine(String.Join(", ", gpuWanted).Replace("NVIDIA RTX ", ""));
             Console.WriteLine();
             Console.WriteLine("-- VERIFICATION DES STOCK --");
         }
@@ -160,10 +160,11 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
+                if ((gpu.prdStatus == "out_of_stock") && (!String.IsNullOrEmpty(link)))
                 {
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
+                    DropsHistory(gpu.displayName, link);
                 }
                 else
                 {
@@ -174,21 +175,20 @@ namespace TonyM
         }
 
 
-        static void DropsHistory()
+        static void DropsHistory(string name, string link)
         {
-            var path = "out";
-            string filename = "history.json";
-
-            if (!Directory.Exists(path))
+            List<Retailer> retailerList = new List<Retailer>();
+            var retailer = new Retailer()
             {
-                Directory.CreateDirectory(path); //permet la création d'un dossier a la racine du PROJEEEEEEEEEEETTT !!!!!!
-            }
+                purchaseLink = link
+            };
+            retailerList.Add(retailer);
 
-            string pathAndFile = Path.Combine(path, filename); //combine un chemin sans utiliser des / ou \ manuel
-
-            var gpuDrop = new Drops()
+            var SaveDrop = new GraphicsCard()
             {
-
+                displayName = name,
+                lastAvailability = new DateTime(),
+                retailers = retailerList
             };
 
         }

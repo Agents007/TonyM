@@ -12,6 +12,7 @@ namespace TonyM
         public string displayName { get; set; }
         public string prdStatus { get; set; }
         public List<Retailer> retailers { get; set; }
+        public DateTime lastAvailability { get; set; }
     }  
 
     public class Retailer
@@ -33,14 +34,6 @@ namespace TonyM
         public string retailerName { get; set; }
         public int type { get; set; }
     }
-
-     public class Drops
-    {
-        public GraphicsCard graphicsCard { get; set; }
-        public DateTime date { get; set; }
-
-    }
-
     
 
 }
