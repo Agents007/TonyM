@@ -149,12 +149,12 @@ namespace TonyM
 
             foreach (var gpu in gpusFilter)
             {
-                if (gpu.prdStatus != "out_of_stock")
+                if (gpu.prdStatus == "out_of_stock")
                 {
                     string link = "";
                     foreach (var item in gpu.retailers)
                     {
-                        link = item.directPurchaseLink;
+                        link = gpu.retailers.Select(g => g.directPurchaseLink).ToString();
                     }
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
