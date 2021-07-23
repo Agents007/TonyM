@@ -141,7 +141,7 @@ namespace TonyM
 
 
         // Check si le gpu est en stock
-        static bool SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
+        static List<string> SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
         {
             DisplayGpuWanted(gpusWanted);
 
@@ -151,17 +151,18 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.directPurchaseLink).ToList().First();
 
-                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
+                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link))) //&& (gpu.displayName.Contains('6')))
                 {
                     OpenBuyPage(link);
-                    return false;
+                    gpusWanted.Remove(gpu.displayName);
                 }
                 else
                 {
                     Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
+                    Console.WriteLine(link);
                 }
             }
-            return true;
+            return gpusWanted;
         }
 
 
@@ -174,25 +175,44 @@ namespace TonyM
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
 
-            var gpusWanted = GetGpuWanted(gpus);
+            //var gpusWanted = GetGpuWanted(gpus);
 
-            Console.WriteLine();
-            Console.WriteLine("Merci, je consulte Laurent");
+            //var gpusFilter = gpus.Where(g => gpusWanted.Any(w => w == g.displayName)).ToList();
 
-            while (true)
+            foreach (var gpu in gpus)
             {
-                Thread.Sleep(refresh);
-                Console.Clear();
-                gpus = GenerateGpu(url);
-                bool outOfStock = SearchGpu(gpus, gpusWanted);
 
-                if (!outOfStock)
+                Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
+                foreach (var item in gpu.retailers)
                 {
-                    Console.Clear();
-                    Console.WriteLine("Un drop à lieu, bonne chance !\nN'oublie pas de relancer l'application pour de nouvelle recherche.");
-                    break;
+                    Console.WriteLine(item.directPurchaseLink);
+                    Console.WriteLine(item.hasOffer);
+                    Console.WriteLine(item.isAvailable);
+                    Console.WriteLine(item.logoUrl);
+                    Console.WriteLine(item.partnerId);
+                    Console.WriteLine(item.productTitle);
                 }
+                Console.WriteLine("---------------------------------------------------------------");
+                Console.WriteLine();
             }
+
+            //    Console.WriteLine();
+            //Console.WriteLine("Merci, je consulte Laurent");
+
+            //while (true)
+            //{
+            //    Thread.Sleep(refresh);
+            //    Console.Clear();
+            //    gpus = GenerateGpu(url);
+            //    gpusWanted = SearchGpu(gpus, gpusWanted);
+
+            //    if (gpusWanted.Count == 0)
+            //    {
+            //        Console.Clear();
+            //        Console.WriteLine("Un drop a eu lieu pour toutes les cartes de votre sélection, merci de relancer le programme.");
+            //        break;
+            //    }
+            //}
 
 
         }
