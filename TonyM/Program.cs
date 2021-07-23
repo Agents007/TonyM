@@ -141,7 +141,7 @@ namespace TonyM
 
 
         // Check si le gpu est en stock
-        static void SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
+        static bool SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
         {
             DisplayGpuWanted(gpusWanted);
 
@@ -149,21 +149,19 @@ namespace TonyM
 
             foreach (var gpu in gpusFilter)
             {
-                if (gpu.prdStatus == "out_of_stock")
+                string link = gpu.retailers.Select(g => g.directPurchaseLink).ToList().First();
+
+                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
                 {
-                    string link = "";
-                    foreach (var item in gpu.retailers)
-                    {
-                        link = gpu.retailers.Select(g => g.directPurchaseLink).ToString();
-                    }
                     OpenBuyPage(link);
-                    gpusWanted.Remove(gpu.displayName);
+                    return false;
                 }
                 else
                 {
                     Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
                 }
             }
+            return true;
         }
 
 
@@ -186,8 +184,17 @@ namespace TonyM
                 Thread.Sleep(refresh);
                 Console.Clear();
                 gpus = GenerateGpu(url);
-                SearchGpu(gpus, gpusWanted);
+                bool outOfStock = SearchGpu(gpus, gpusWanted);
+
+                if (!outOfStock)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Un drop à lieu, bonne chance !\nN'oublie pas de relancer l'application pour de nouvelle recherche.");
+                    break;
+                }
             }
+
+
         }
     }
 }
