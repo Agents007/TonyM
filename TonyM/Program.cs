@@ -39,8 +39,10 @@ namespace TonyM
 
         static void DisplayGpuWanted(List<string> gpuWanted)
         {
-            Console.Write("VOTRE SELECTION -> ");
+            Console.Write("-- VOTRE SELECTION --\n");
             Console.WriteLine(String.Join(", ", gpuWanted));
+            Console.WriteLine();
+            Console.WriteLine("-- VERIFICATION DES STOCK --");
         }
 
         // Récupération API et Deserialisation obj
@@ -92,6 +94,10 @@ namespace TonyM
             {
                 gpusAvailable.Add(gpuObj.displayName);
             }
+            gpusAvailable = gpusAvailable
+                .OrderBy(g => g)
+                .ToList();
+
 
             List<string> gpusUserSelect = new List<string>();
 
@@ -145,7 +151,10 @@ namespace TonyM
         {
             DisplayGpuWanted(gpusWanted);
 
-            var gpusFilter = gpus.Where(g => gpusWanted.Any(w => w == g.displayName)).ToList();
+            var gpusFilter = gpus
+                .Where(g => gpusWanted.Any(w => w == g.displayName))
+                .OrderBy(o => o.displayName)
+                .ToList();
 
             foreach (var gpu in gpusFilter)
             {
@@ -162,6 +171,26 @@ namespace TonyM
                 }
             }
             return gpusWanted;
+        }
+
+
+        static void DropsHistory()
+        {
+            var path = "out";
+            string filename = "history.json";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path); //permet la création d'un dossier a la racine du PROJEEEEEEEEEEETTT !!!!!!
+            }
+
+            string pathAndFile = Path.Combine(path, filename); //combine un chemin sans utiliser des / ou \ manuel
+
+            var gpuDrop = new Drops()
+            {
+
+            };
+
         }
 
 
@@ -184,15 +213,18 @@ namespace TonyM
                 Thread.Sleep(refresh);
                 Console.Clear();
                 gpus = GenerateGpu(url);
+
                 gpusWanted = SearchGpu(gpus, gpusWanted);
 
                 if (gpusWanted.Count == 0)
                 {
                     Console.Clear();
-                    Console.WriteLine("Un drop à eu lieu pour toutes les cartes de votre sélection, merci de relancer le programme.");
+                    Console.WriteLine("Votre sélection est vide, un drop a déjà eux lieu pour les références choisit.\nMerci de relancer l'application pour une nouvelle recherche");
                     break;
                 }
             }
+
+            //Ecrire dans un json le nom du gpu, l'heure et le lien du drop, lors de la détection du drop.
 
 
         }
