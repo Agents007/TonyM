@@ -160,7 +160,7 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-                if ((gpu.prdStatus == "out_of_stock") && (!String.IsNullOrEmpty(link)))
+                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
                 {
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
@@ -177,19 +177,19 @@ namespace TonyM
 
         static void DropsHistory(string name, string link)
         {
-            List<Retailer> retailerList = new List<Retailer>();
-            var retailer = new Retailer()
-            {
-                purchaseLink = link
-            };
-            retailerList.Add(retailer);
+            var path = "out";
+            string filename = "drophistory.txt";
 
-            var SaveDrop = new GraphicsCard()
+            if (!Directory.Exists(path))
             {
-                displayName = name,
-                lastAvailability = new DateTime(),
-                retailers = retailerList
-            };
+                Directory.CreateDirectory(path);
+            }
+            DateTime date = new DateTime();           
+
+            string pathAndFile = Path.Combine(path, filename);
+            string drop = "Un drop de " + name + "à eu lieu le" + date.ToString("dddd dd MMMM yyyy HH:mm:ss");
+            //File.WriteAllText(pathAndFile, jsonListe);
+
 
         }
 
