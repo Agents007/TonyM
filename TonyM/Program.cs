@@ -32,7 +32,7 @@ namespace TonyM
     {
         static string CreateDropFile()
         {
-            var path = "out";
+            var path = "Drop_Folder";
             string filename = "drops.txt";
 
             if (!Directory.Exists(path))
@@ -73,18 +73,6 @@ namespace TonyM
             Console.WriteLine("-- HISTORIQUE DES DROPS --");
             string oldDrop = File.ReadAllText(pathAndFile);
             Console.WriteLine(oldDrop);
-        }
-
-        static void kjkjk()
-        {
-            var path = "out";
-            string filename = "drops.txt";
-
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            string pathAndFile = Path.Combine(path, filename);
         }
 
         static void OpenBuyPage(string link)
@@ -220,7 +208,7 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-                if ((gpu.prdStatus == "out_of_stock") && (!String.IsNullOrEmpty(link)) && (gpu.displayName == "NVIDIA RTX 3070"))
+                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link))) //&& (gpu.displayName == "NVIDIA RTX 3070"))
                 {
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
@@ -238,7 +226,8 @@ namespace TonyM
 
         static void Main(string[] args)
         {
-            const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
+            //const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
+            const string url = "https://cctry.000webhostapp.com/cctry.json";
             const int refresh = 3000;
 
             var gpus = GenerateGpu(url);
@@ -260,7 +249,11 @@ namespace TonyM
 
                 gpusWanted = SearchGpu(gpus, gpusWanted, dropFile);
 
-                DisplayOldDrop(dropFile);
+                if (File.Exists(dropFile))
+                {
+                    DisplayOldDrop(dropFile);
+                }
+                
 
                 if (gpusWanted.Count == 0)
                 {
