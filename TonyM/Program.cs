@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,12 +30,33 @@ namespace TonyM
 
     class Program
     {
-        static void OpenBuyPage(string link)
+        static string CreateDropFile()
         {
-            var psi = new System.Diagnostics.ProcessStartInfo();
-            psi.UseShellExecute = true;
-            psi.FileName = link;
-            System.Diagnostics.Process.Start(psi);
+            var path = "out";
+            string filename = "drops.txt";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            string pathAndFile = Path.Combine(path, filename);
+
+            if (File.Exists(pathAndFile))
+            {
+                File.Delete(pathAndFile);
+            }
+
+            return pathAndFile;
+        }
+
+        static void WriteDrop(string pathAndFile, string name, string link)
+        {
+            DateTime date = new DateTime();
+            CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
+
+            string drop = date.ToString("dd/MM HH:mm:ss") + " : " + name.Replace("NVIDIA RTX ", "") + " -> " + link + "\n";
+            File.AppendAllText(pathAndFile, drop);
         }
 
         static void DisplayGpuWanted(List<string> gpuWanted)
@@ -44,6 +66,32 @@ namespace TonyM
             Console.WriteLine();
             Console.WriteLine("-- VERIFICATION DES STOCK --");
         }
+
+        static void DisplayOldDrop(string pathAndFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("-- HISTORIQUE DES DROPS --");
+            string oldDrop = File.ReadAllText(pathAndFile);
+            Console.WriteLine(oldDrop);
+        }
+
+        static void OpenBuyPage(string link)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            psi.UseShellExecute = true;
+            psi.FileName = link;
+            System.Diagnostics.Process.Start(psi);
+        }
+
+        static void SoundAlert()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                Console.Beep();
+            }
+        }
+
+
 
         // Récupération API et Deserialisation obj
         static List<GraphicsCard> GenerateGpu(string url)
@@ -147,7 +195,7 @@ namespace TonyM
 
 
         // Check si le gpu est en stock
-        static List<string> SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted)
+        static List<string> SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted, string pathAndFile)
         {
             DisplayGpuWanted(gpusWanted);
 
@@ -160,11 +208,12 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
+                if ((gpu.prdStatus == "out_of_stock") && (!String.IsNullOrEmpty(link)) && (gpu.displayName == "NVIDIA RTX 3070"))
                 {
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
-                    DropsHistory(gpu.displayName, link);
+                    SoundAlert();
+                    WriteDrop(pathAndFile, gpu.displayName, link);
                 }
                 else
                 {
@@ -175,25 +224,6 @@ namespace TonyM
         }
 
 
-        static void DropsHistory(string name, string link)
-        {
-            var path = "out";
-            string filename = "drophistory.txt";
-
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            DateTime date = new DateTime();           
-
-            string pathAndFile = Path.Combine(path, filename);
-            string drop = "Un drop de " + name + "à eu lieu le" + date.ToString("dddd dd MMMM yyyy HH:mm:ss");
-            //File.WriteAllText(pathAndFile, jsonListe);
-
-
-        }
-
-
         static void Main(string[] args)
         {
             const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
@@ -201,7 +231,9 @@ namespace TonyM
 
             var gpus = GenerateGpu(url);
 
-            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ?");
+            string dropFile = CreateDropFile();
+
+            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaité)");
 
             var gpusWanted = GetGpuWanted(gpus);
 
@@ -214,7 +246,9 @@ namespace TonyM
                 Console.Clear();
                 gpus = GenerateGpu(url);
 
-                gpusWanted = SearchGpu(gpus, gpusWanted);
+                gpusWanted = SearchGpu(gpus, gpusWanted, dropFile);
+
+                DisplayOldDrop(dropFile);
 
                 if (gpusWanted.Count == 0)
                 {
@@ -223,10 +257,6 @@ namespace TonyM
                     break;
                 }
             }
-
-            //Ecrire dans un json le nom du gpu, l'heure et le lien du drop, lors de la détection du drop.
-
-
         }
     }
 }
