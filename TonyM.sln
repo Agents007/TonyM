@@ -14,9 +14,10 @@ Global
 		Description = Tony vous alertes en cas de drop FE chez la mafia LDLC
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6FA71AB-3721-4F2F-8DFF-5AAED6675927}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
