@@ -64,7 +64,7 @@ namespace TonyM
             Console.Write("-- VOTRE SELECTION --\n");
             Console.WriteLine(String.Join(", ", gpuWanted).Replace("NVIDIA RTX ", ""));
             Console.WriteLine();
-            Console.WriteLine("-- VERIFICATION DES STOCK --");
+            Console.WriteLine("-- VERIFICATION DES STOCKS --");
         }
 
         static void DisplayOldDrop(string pathAndFile)
@@ -73,6 +73,18 @@ namespace TonyM
             Console.WriteLine("-- HISTORIQUE DES DROPS --");
             string oldDrop = File.ReadAllText(pathAndFile);
             Console.WriteLine(oldDrop);
+        }
+
+        static void kjkjk()
+        {
+            var path = "out";
+            string filename = "drops.txt";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string pathAndFile = Path.Combine(path, filename);
         }
 
         static void OpenBuyPage(string link)
@@ -168,12 +180,12 @@ namespace TonyM
                     {
                         if (gpusUserSelect.Contains(gpusAvailable[choiceInt - 1]))
                         {
-                            Console.WriteLine("Ce GPU fait déjà partis de votre sélection\n");
+                            Console.WriteLine("Ce GPU fait déjà parti de votre sélection\n");
                         } 
                         else
                         {
                             gpusUserSelect.Add(gpusAvailable[choiceInt - 1]);
-                            Console.WriteLine(gpusAvailable[choiceInt - 1] + " ajoutée à la liste. Ajoutez une autre carte ou terminé la sélection.\n");
+                            Console.WriteLine(gpusAvailable[choiceInt - 1] + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
                     else if ((choiceInt  == 10) && (gpusUserSelect.Count > 0))
@@ -233,7 +245,7 @@ namespace TonyM
 
             string dropFile = CreateDropFile();
 
-            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaité)");
+            Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
 
             var gpusWanted = GetGpuWanted(gpus);
 
@@ -253,7 +265,7 @@ namespace TonyM
                 if (gpusWanted.Count == 0)
                 {
                     Console.Clear();
-                    Console.WriteLine("Votre sélection est vide, un drop a déjà eux lieu pour les références choisit.\nMerci de relancer l'application pour une nouvelle recherche");
+                    Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
                     break;
                 }
             }
