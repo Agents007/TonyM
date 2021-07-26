@@ -52,10 +52,11 @@ namespace TonyM
 
         static void WriteDrop(string pathAndFile, string name, string link)
         {
-            DateTime date = new DateTime();
+            DateTime date = DateTime.Now;
             CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
 
-            string drop = date.ToString("dd/MM HH:mm:ss") + " : " + name.Replace("NVIDIA RTX ", "") + " -> " + link + "\n";
+            string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
+            string drop = dateStr + " : " + name.Replace("NVIDIA RTX ", "") + " -> " + link + "\n";
             File.AppendAllText(pathAndFile, drop);
         }
 
