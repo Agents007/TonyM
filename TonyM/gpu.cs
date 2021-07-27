@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace TonyM
 {
-
     public class GraphicsCard
     {
         public string displayName { get; set; }
@@ -21,6 +20,4 @@ namespace TonyM
         public string directPurchaseLink { get; set; }
         public string purchaseLink { get; set; }
     }
-    
-
 }
