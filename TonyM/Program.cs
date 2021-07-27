@@ -248,7 +248,6 @@ namespace TonyM
                     DisplayOldDrop(dropFile);
                 }
                 
-
                 if (gpusWanted.Count == 0)
                 {
                     Console.Clear();
