@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Authors>Gaetan Demazeux</Authors>
-    <Company>Moi même Society</Company>
+    <Company>Moi même Société</Company>
     <Description>TonyM notifie la présence de carte graphique FE chez LDLC</Description>
     <PackageIcon>tony-montana-scarface-omega-la-magic.jpg</PackageIcon>
     <PackageIconUrl />

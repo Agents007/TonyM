@@ -49,7 +49,6 @@ namespace TonyM
 
             return pathAndFile;
         }
-
         static void WriteDrop(string pathAndFile, string name, string link)
         {
             DateTime date = DateTime.Now;
@@ -92,8 +91,6 @@ namespace TonyM
             }
         }
 
-
-
         // Récupération API et Deserialisation obj
         static List<GraphicsCard> GenerateGpu(string url)
         {
@@ -130,9 +127,6 @@ namespace TonyM
 
             return products;
         }
-
-
-
 
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
         static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
@@ -193,7 +187,6 @@ namespace TonyM
             }
             return gpusUserSelect;
         }
-
 
         // Check si le gpu est en stock
         static List<string> SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted, string pathAndFile)
