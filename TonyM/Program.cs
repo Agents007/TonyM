@@ -202,7 +202,7 @@ namespace TonyM
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link))) //&& (gpu.displayName == "NVIDIA RTX 3070"))
+                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
                 {
                     OpenBuyPage(link);
                     gpusWanted.Remove(gpu.displayName);
