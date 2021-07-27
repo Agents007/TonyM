@@ -95,7 +95,7 @@ namespace TonyM
         static List<GraphicsCard> GenerateGpu(string url)
         {
             var webClient = new WebClient();
-            webClient.Headers.Add("Accept", "application/json");
+            webClient.Headers.Add("Accept", "application/json"); //correctif
             string json = null;
             try
             {
