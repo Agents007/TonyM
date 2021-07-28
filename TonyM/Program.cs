@@ -28,11 +28,13 @@ namespace TonyM
         }
     }
 
+
+
     class Program
     {
         static string CreateDropFile()
         {
-            var path = "Drop_Folder";
+            var path = "Drop";
             string filename = "drops.txt";
 
             if (!Directory.Exists(path))
@@ -99,7 +101,7 @@ namespace TonyM
 
 
 
-
+        // Récupération API
         static JsonDocument ConnectionApi(string url)
         {
             var webClient = new WebClient();
@@ -111,7 +113,7 @@ namespace TonyM
             try
             {
                 json = webClient.DownloadString(url);
-                JsonDocument jsonParse = JsonDocument.Parse(json);
+                var jsonParse = JsonDocument.Parse(json);
                 return jsonParse;
             }
             catch (Exception ex)
@@ -121,12 +123,13 @@ namespace TonyM
             }
         }
 
-        // Récupération API et Deserialisation obj
-        static List<GraphicsCard> GenerateGpusList(JsonDocument json)
+        //  Deserialisation OBJ
+        static List<GraphicsCard> GenerateGpusList(JsonDocument jsonParse)
         {
+
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            var products = json.RootElement
+            var products = jsonParse.RootElement
                 .GetProperty("searchedProducts") 
                 .GetProperty("productDetails")
                 .EnumerateArray()
@@ -134,7 +137,7 @@ namespace TonyM
                 .Select(n => n.ToObject<GraphicsCard>(options))
                 .ToList();
 
-            var featuredProduct = json.RootElement
+            var featuredProduct = jsonParse.RootElement
                 .GetProperty("searchedProducts")
                 .GetProperty("featuredProduct")
                 .ToObject<GraphicsCard>(options);
@@ -143,18 +146,18 @@ namespace TonyM
             return products;
         }
 
-        static GraphicsCard GenerateGpu(JsonDocument json)
+        static GraphicsCard GenerateGpu(JsonDocument jsonParse)
         {
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            var product = json.RootElement
+            var product = jsonParse.RootElement
                 .GetProperty("searchedProducts")
                 .GetProperty("featuredProduct")
                 .ToObject<GraphicsCard>(options);
 
             if (product == null)
             {
-                product = json.RootElement
+                product = jsonParse.RootElement
                 .GetProperty("searchedProducts")
                 .GetProperty("productDetails")
                 .EnumerateArray()
@@ -165,12 +168,16 @@ namespace TonyM
 
             return product;
 
+
+
+
+
+
         }
 
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
         static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
         {
-
             List<string> gpusAvailable = new List<string>();
             foreach (var gpuObj in gpusObj)
             {
@@ -228,62 +235,66 @@ namespace TonyM
         }
 
         // Check si le gpu est en stock
-        static void SearchGpu(GraphicsCard gpu, List<string> gpusWanted, string pathAndFile)
+        static bool SearchGpu(GraphicsCard gpu, string pathAndFile)
         {
-            //DisplayGpuWanted(gpusWanted);
-
             string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
             if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
             {
                 OpenBuyPage(link);
-                //gpusWanted.Remove(gpu.displayName);
                 SoundAlert();
                 WriteDrop(pathAndFile, gpu.displayName, link);
+                return true;
             }
             else
             {
                 Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
             }
 
-
+            return false;
         }
 
         static void Main(string[] args)
         {
-            const string urlInit = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
-            const int refresh = 3000;
-            //const string url = "";
+            const string URL_INIT = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
+            const int REFRESH = 1000;
 
 
             // ---------------Premier lancement de l'application-------------------------------------------------
             string dropFile = CreateDropFile();
-            JsonDocument connection = ConnectionApi(urlInit);
-            List<GraphicsCard> gpusInit = GenerateGpusList(connection);
+            var connectionInit = ConnectionApi(URL_INIT);
+            List<GraphicsCard> gpusInit = GenerateGpusList(connectionInit);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
             List<string> gpusWanted = GetGpuWanted(gpusInit);
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
-            // ----------------------Fin Init--------------------------------------------------------------------
+            // ----------------------Fin Initialisation--------------------------------------------------------------------
 
 
+            // ---------------Recherche des RTX FE-------------------------------------------------
             string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
 
             while (true)
             {
-                Thread.Sleep(refresh);
+                Thread.Sleep(REFRESH);
                 Console.Clear();
 
-                foreach (var gpuWanted in gpusWanted)
-                {
-                    string urlGpu = urlBase + gpuWanted.Replace(" ", "%20");
-                    JsonDocument connection2 = ConnectionApi(urlGpu);
-                    GraphicsCard gpu = GenerateGpu(connection2);
-                    gpusWanted = SearchGpu(gpu, gpusWanted, dropFile);
-                    //SearchGpu(gpu, dropFile);
+                DisplayGpuWanted(gpusWanted);
 
+                for (int i = gpusWanted.Count - 1; i >= 0; i--)
+                {
+                    string urlGpu = urlBase + gpusWanted[i].Replace(" ", "%20");
+                    JsonDocument connection = ConnectionApi(urlGpu);
+
+                    GraphicsCard gpu = GenerateGpu(connection);
+                    bool gpuDrop = SearchGpu(gpu, dropFile);
+
+                    if (gpuDrop)
+                    {
+                        gpusWanted.RemoveAt(i);
+                    }
                 }
 
                 if (File.Exists(dropFile))
@@ -297,33 +308,7 @@ namespace TonyM
                     Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
                     break;
                 }
-
             }
-
-
-
-
-
-            //while (true)
-            //{
-            //    Thread.Sleep(refresh);
-            //    Console.Clear();
-            //    gpus = GenerateGpu(url);
-
-            //    gpusWanted = SearchGpu(gpus, gpusWanted, dropFile);
-
-            //    if (File.Exists(dropFile))
-            //    {
-            //        DisplayOldDrop(dropFile);
-            //    }
-
-            //    if (gpusWanted.Count == 0)
-            //    {
-            //        Console.Clear();
-            //        Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
-            //        break;
-            //    }
-            //}
         }
     }
 }
