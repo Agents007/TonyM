@@ -242,7 +242,10 @@ namespace TonyM
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
             List<string> gpusWanted = GetGpuWanted(gpusInit);
             // ----------------------Fin Init--------------------------------------------------------------------
-
+            foreach (var gpu in gpusWanted)
+            {
+                Console.WriteLine(gpu);
+            }
 
 
 
