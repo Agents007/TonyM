@@ -91,7 +91,16 @@ namespace TonyM
             }
         }
 
-        static string ConnectionApi(string url)
+
+
+
+
+
+
+
+
+
+        static JsonDocument ConnectionApi(string url)
         {
             var webClient = new WebClient();
             webClient.Headers.Add("Accept", "application/json");
@@ -102,7 +111,8 @@ namespace TonyM
             try
             {
                 json = webClient.DownloadString(url);
-                return json;
+                JsonDocument jsonParse = JsonDocument.Parse(json);
+                return jsonParse;
             }
             catch (Exception ex)
             {
@@ -112,14 +122,11 @@ namespace TonyM
         }
 
         // Récupération API et Deserialisation obj
-        static List<GraphicsCard> GenerateGpu(string json)
+        static List<GraphicsCard> GenerateGpusList(JsonDocument json)
         {
-
-            var jsonParse = JsonDocument.Parse(json); 
-
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            var products = jsonParse.RootElement
+            var products = json.RootElement
                 .GetProperty("searchedProducts") 
                 .GetProperty("productDetails")
                 .EnumerateArray()
@@ -127,14 +134,37 @@ namespace TonyM
                 .Select(n => n.ToObject<GraphicsCard>(options))
                 .ToList();
 
-            var featuredProduct = jsonParse.RootElement
+            var featuredProduct = json.RootElement
                 .GetProperty("searchedProducts")
                 .GetProperty("featuredProduct")
                 .ToObject<GraphicsCard>(options);
 
             products.Add(featuredProduct);
-
             return products;
+        }
+
+        static GraphicsCard GenerateGpu(JsonDocument json)
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var product = json.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("featuredProduct")
+                .ToObject<GraphicsCard>(options);
+
+            if (product == null)
+            {
+                product = json.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("productDetails")
+                .EnumerateArray()
+                .Where(n => n.GetProperty("isFounderEdition").GetBoolean())
+                .Select(n => n.ToObject<GraphicsCard>(options))
+                .FirstOrDefault();
+            }
+
+            return product;
+
         }
 
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
@@ -176,7 +206,7 @@ namespace TonyM
                         } 
                         else
                         {
-                            gpusUserSelect.Add(gpusAvailable[choiceInt - 1]);
+                            gpusUserSelect.Add(gpusAvailable[choiceInt - 1].Replace("NVIDIA ", ""));
                             Console.WriteLine(gpusAvailable[choiceInt - 1] + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
@@ -198,34 +228,26 @@ namespace TonyM
         }
 
         // Check si le gpu est en stock
-        static List<string> SearchGpu(List<GraphicsCard> gpus, List<string> gpusWanted, string pathAndFile)
+        static void SearchGpu(GraphicsCard gpu, List<string> gpusWanted, string pathAndFile)
         {
-            DisplayGpuWanted(gpusWanted);
+            //DisplayGpuWanted(gpusWanted);
 
-            var gpusFilter = gpus
-                .Where(g => gpusWanted.Any(w => w == g.displayName))
-                .OrderBy(o => o.displayName)
-                .ToList();
+            string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
-            foreach (var gpu in gpusFilter)
+            if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
             {
-                string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
-
-                if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
-                {
-                    OpenBuyPage(link);
-                    gpusWanted.Remove(gpu.displayName);
-                    SoundAlert();
-                    WriteDrop(pathAndFile, gpu.displayName, link);
-                }
-                else
-                {
-                    Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
-                }
+                OpenBuyPage(link);
+                //gpusWanted.Remove(gpu.displayName);
+                SoundAlert();
+                WriteDrop(pathAndFile, gpu.displayName, link);
             }
-            return gpusWanted;
-        }
+            else
+            {
+                Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
+            }
 
+
+        }
 
         static void Main(string[] args)
         {
@@ -236,30 +258,51 @@ namespace TonyM
 
             // ---------------Premier lancement de l'application-------------------------------------------------
             string dropFile = CreateDropFile();
-            string connection = ConnectionApi(urlInit);
-            List<GraphicsCard> gpusInit = GenerateGpu(connection);
+            JsonDocument connection = ConnectionApi(urlInit);
+            List<GraphicsCard> gpusInit = GenerateGpusList(connection);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
             List<string> gpusWanted = GetGpuWanted(gpusInit);
+
+            Console.WriteLine();
+            Console.WriteLine("Merci, je consulte Laurent");
             // ----------------------Fin Init--------------------------------------------------------------------
-            foreach (var gpu in gpusWanted)
+
+
+            string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
+
+            while (true)
             {
-                Console.WriteLine(gpu);
+                Thread.Sleep(refresh);
+                Console.Clear();
+
+                foreach (var gpuWanted in gpusWanted)
+                {
+                    string urlGpu = urlBase + gpuWanted.Replace(" ", "%20");
+                    JsonDocument connection2 = ConnectionApi(urlGpu);
+                    GraphicsCard gpu = GenerateGpu(connection2);
+                    gpusWanted = SearchGpu(gpu, gpusWanted, dropFile);
+                    //SearchGpu(gpu, dropFile);
+
+                }
+
+                if (File.Exists(dropFile))
+                {
+                    DisplayOldDrop(dropFile);
+                }
+
+                if (gpusWanted.Count == 0)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
+                    break;
+                }
+
             }
 
 
 
 
-
-
-
-
-
-
-
-
-            //Console.WriteLine();
-            //Console.WriteLine("Merci, je consulte Laurent");
 
             //while (true)
             //{
