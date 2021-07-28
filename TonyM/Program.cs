@@ -91,20 +91,29 @@ namespace TonyM
             }
         }
 
-        // Récupération API et Deserialisation obj
-        static List<GraphicsCard> GenerateGpu(string url)
+        static string ConnectionApi(string url)
         {
             var webClient = new WebClient();
-            webClient.Headers.Add("Accept", "application/json"); //correctif
+            webClient.Headers.Add("Accept", "application/json");
+            webClient.Headers.Add("pragma", "no-cache");
+            webClient.Headers.Add("cache-control", "no-cache");
+            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
             string json = null;
             try
             {
-                json = webClient.DownloadString(url);              
+                json = webClient.DownloadString(url);
+                return json;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Erreur : " + ex.Message);
+                return null;
             }
+        }
+
+        // Récupération API et Deserialisation obj
+        static List<GraphicsCard> GenerateGpu(string json)
+        {
 
             var jsonParse = JsonDocument.Parse(json); 
 
@@ -220,41 +229,55 @@ namespace TonyM
 
         static void Main(string[] args)
         {
-            const string url = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
-            //const string url = "";
+            const string urlInit = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
             const int refresh = 3000;
+            //const string url = "";
 
-            var gpus = GenerateGpu(url);
 
+            // ---------------Premier lancement de l'application-------------------------------------------------
             string dropFile = CreateDropFile();
+            string connection = ConnectionApi(urlInit);
+            List<GraphicsCard> gpusInit = GenerateGpu(connection);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
+            List<string> gpusWanted = GetGpuWanted(gpusInit);
+            // ----------------------Fin Init--------------------------------------------------------------------
 
-            var gpusWanted = GetGpuWanted(gpus);
 
-            Console.WriteLine();
-            Console.WriteLine("Merci, je consulte Laurent");
 
-            while (true)
-            {
-                Thread.Sleep(refresh);
-                Console.Clear();
-                gpus = GenerateGpu(url);
 
-                gpusWanted = SearchGpu(gpus, gpusWanted, dropFile);
 
-                if (File.Exists(dropFile))
-                {
-                    DisplayOldDrop(dropFile);
-                }
-                
-                if (gpusWanted.Count == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
-                    break;
-                }
-            }
+
+
+
+
+
+
+
+
+            //Console.WriteLine();
+            //Console.WriteLine("Merci, je consulte Laurent");
+
+            //while (true)
+            //{
+            //    Thread.Sleep(refresh);
+            //    Console.Clear();
+            //    gpus = GenerateGpu(url);
+
+            //    gpusWanted = SearchGpu(gpus, gpusWanted, dropFile);
+
+            //    if (File.Exists(dropFile))
+            //    {
+            //        DisplayOldDrop(dropFile);
+            //    }
+
+            //    if (gpusWanted.Count == 0)
+            //    {
+            //        Console.Clear();
+            //        Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
+            //        break;
+            //    }
+            //}
         }
     }
 }
