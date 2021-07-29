@@ -64,7 +64,7 @@ namespace TonyM
         static void DisplayGpuWanted(List<string> gpuWanted)
         {
             Console.Write("-- VOTRE SELECTION --\n");
-            Console.WriteLine(String.Join(", ", gpuWanted).Replace("NVIDIA RTX ", ""));
+            Console.WriteLine(String.Join(", ", gpuWanted.OrderBy(g => g)).Replace("NVIDIA RTX ", ""));
             Console.WriteLine();
             Console.WriteLine("-- VERIFICATION DES STOCKS --");
         }
@@ -95,10 +95,6 @@ namespace TonyM
 
 
 
-
-
-
-
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
         static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
         {
@@ -108,7 +104,7 @@ namespace TonyM
                 gpusAvailable.Add(gpuObj.displayName);
             }
             gpusAvailable = gpusAvailable
-                .OrderBy(g => g)
+                .OrderByDescending(g => g)
                 .ToList();
 
 
@@ -230,8 +226,8 @@ namespace TonyM
                 Console.WriteLine("Problème avec l'API");
             }
 
-            foreach (var gpu in gpus)
-            {
+            GraphicsCard gpu = gpus.First();
+
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
 
                 if ((gpu.prdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
@@ -244,8 +240,7 @@ namespace TonyM
                 else
                 {
                     Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
-                }
-            }       
+                }     
 
             return false;
         }
@@ -273,7 +268,6 @@ namespace TonyM
 
             // ---------------Recherche des RTX FE-------------------------------------------------
             string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
-
             while (true)
             {
                 Thread.Sleep(REFRESH);
