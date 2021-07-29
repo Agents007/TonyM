@@ -295,18 +295,19 @@ namespace TonyM
 
 
             // ---------------Recherche des RTX FE-------------------------------------------------
-            //string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
-            string urlBase = "https://cctry.000webhostapp.com/";
+            string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
+            //string urlBase = "https://cctry.000webhostapp.com/";
             while (true)
             {
                 Thread.Sleep(REFRESH);
                 Console.Clear();
 
                 DisplayGpuWanted(gpusWanted);
-
+                DateTime t1 = DateTime.Now;
                 for (int i = gpusWanted.Count - 1; i >= 0; i--)
                 {
-                    string urlGpu = urlBase + gpusWanted[i].Replace(" ", "%20") + ".json";
+
+                    string urlGpu = urlBase + gpusWanted[i].Replace(" ", "%20");
                     JsonDocument connection = ConnectionApi(urlGpu);
 
                     var gpus = GenerateGpu(connection);
@@ -316,7 +317,11 @@ namespace TonyM
                     {
                         gpusWanted.RemoveAt(i);
                     }
+
                 }
+                DateTime t2 = DateTime.Now;
+                var diff = (int)((t2 - t1).TotalMilliseconds);  //1s = 1000ms
+                Console.WriteLine("Durée (ms) : " + diff);
 
                 if (File.Exists(dropFile))
                 {
