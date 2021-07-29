@@ -8,16 +8,16 @@ namespace TonyM
 {
     public class GraphicsCard
     {
-        public string displayName { get; set; }
-        public string prdStatus { get; set; }
-        public List<Retailer> retailers { get; set; }
-        public DateTime lastAvailability { get; set; }
+        public string DisplayName { get; set; }
+        public string PrdStatus { get; set; }
+        public List<Retailer> Retailers { get; set; }
+        public DateTime LastAvailability { get; set; }
     }  
 
     public class Retailer
     {
-        public string salePrice { get; set; }
-        public string directPurchaseLink { get; set; }
-        public string purchaseLink { get; set; }
+        public string SalePrice { get; set; }
+        public string DirectPurchaseLink { get; set; }
+        public string PurchaseLink { get; set; }
     }
 }
