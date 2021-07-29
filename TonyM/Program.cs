@@ -29,7 +29,6 @@ namespace TonyM
     }
 
 
-
     class Program
     {
         static string CreateDropFile()
@@ -94,7 +93,6 @@ namespace TonyM
                 Console.Beep();
             }
         }
-
 
 
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
@@ -203,8 +201,6 @@ namespace TonyM
             } 
             return null;
         }
-
-
         
 
         // Check si le gpu est en stock
@@ -269,7 +265,6 @@ namespace TonyM
                     {
                         gpusWanted.RemoveAt(i);
                     }
-
                 }
 
                 if (File.Exists(dropFile))
