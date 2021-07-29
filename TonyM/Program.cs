@@ -99,97 +99,6 @@ namespace TonyM
 
 
 
-
-
-        // Récupération API
-        static JsonDocument ConnectionApi(string url)
-        {
-            var webClient = new WebClient();
-            webClient.Headers.Add("Accept", "application/json");
-            webClient.Headers.Add("pragma", "no-cache");
-            webClient.Headers.Add("cache-control", "no-cache");
-            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
-            string json = null;
-            try
-            {
-                json = webClient.DownloadString(url);
-                var jsonParse = JsonDocument.Parse(json);
-                return jsonParse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erreur : " + ex.Message);
-                return null;
-            }
-        }
-
-        
-        static List<GraphicsCard> GenerateGpusList(JsonDocument jsonParse)
-        {
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-            var products = jsonParse.RootElement
-                .GetProperty("searchedProducts") 
-                .GetProperty("productDetails")
-                .EnumerateArray()
-                .Where(n => n.GetProperty("isFounderEdition").GetBoolean())
-                .Select(n => n.ToObject<GraphicsCard>(options))
-                .ToList();
-
-            var featuredProduct = jsonParse.RootElement
-                .GetProperty("searchedProducts")
-                .GetProperty("featuredProduct")
-                .ToObject<GraphicsCard>(options);
-
-            products.Add(featuredProduct);
-            return products;
-        }
-
-        //  Deserialisation OBJ
-        static List<GraphicsCard> GenerateGpu(JsonDocument jsonParse)
-        {
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-            List<GraphicsCard> gpusList = new List<GraphicsCard>();
-
-            GraphicsCard featuredProduct = jsonParse.RootElement
-                .GetProperty("searchedProducts")
-                .GetProperty("featuredProduct")
-                .ToObject<GraphicsCard>(options);
-
-            List<GraphicsCard> searchedProducts = jsonParse.RootElement
-                .GetProperty("searchedProducts")
-                .GetProperty("productDetails")
-                .EnumerateArray()
-                .Where(n => n.GetProperty("isFounderEdition").GetBoolean())
-                .Select(n => n.ToObject<GraphicsCard>(options))
-                .ToList();
-
-            if ((featuredProduct != null) && (searchedProducts != null))
-            {
-                List<GraphicsCard> allProducts = gpusList
-                    .Concat(searchedProducts)
-                    .ToList();
-                allProducts.Add(featuredProduct);
-                return allProducts;
-            }
-            else if ((featuredProduct != null) && (searchedProducts == null))
-            {
-                gpusList.Add(featuredProduct);
-                return gpusList;
-            }
-            else if ((featuredProduct == null) && (searchedProducts != null))
-            {
-                return searchedProducts;
-            } 
-            else
-            {
-                return null;
-            }
-
-        }
-
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
         static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
         {
@@ -225,16 +134,16 @@ namespace TonyM
                         if (gpusUserSelect.Contains(gpusAvailable[choiceInt - 1]))
                         {
                             Console.WriteLine("Ce GPU fait déjà parti de votre sélection\n");
-                        } 
+                        }
                         else
                         {
                             gpusUserSelect.Add(gpusAvailable[choiceInt - 1].Replace("NVIDIA ", ""));
                             Console.WriteLine(gpusAvailable[choiceInt - 1] + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
-                    else if ((choiceInt  == 10) && (gpusUserSelect.Count > 0))
+                    else if ((choiceInt == 10) && (gpusUserSelect.Count > 0))
                     {
-                        break;    
+                        break;
                     }
                     else
                     {
@@ -249,9 +158,78 @@ namespace TonyM
             return gpusUserSelect;
         }
 
+
+        // Récupération API
+        static JsonDocument ConnectionApi(string url)
+        {
+            var webClient = new WebClient();
+            webClient.Headers.Add("Accept", "application/json");
+            webClient.Headers.Add("pragma", "no-cache");
+            webClient.Headers.Add("cache-control", "no-cache");
+            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
+            string json = null;
+            try
+            {
+                json = webClient.DownloadString(url);
+                var jsonParse = JsonDocument.Parse(json);
+                return jsonParse;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erreur : " + ex.Message);
+                return null;
+            }
+        }
+
+
+        //  Deserialisation OBJ
+        static List<GraphicsCard> GenerateGpu(JsonDocument jsonParse)
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            List<GraphicsCard> searchedProducts = jsonParse.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("productDetails")
+                .EnumerateArray()
+                .Where(n => n.GetProperty("isFounderEdition").GetBoolean())
+                .Select(n => n.ToObject<GraphicsCard>(options))
+                .ToList();
+
+            GraphicsCard featuredProduct = jsonParse.RootElement
+                .GetProperty("searchedProducts")
+                .GetProperty("featuredProduct")
+                .ToObject<GraphicsCard>(options);
+
+
+            if ((featuredProduct != null) && (searchedProducts != null))
+            {
+                searchedProducts.Add(featuredProduct);
+                return searchedProducts;
+            }
+            else if ((featuredProduct != null) && (searchedProducts == null))
+            {
+                List<GraphicsCard> featuredProductList = new List<GraphicsCard>();
+                featuredProductList.Add(featuredProduct);
+                return featuredProductList;
+            }
+            else if ((featuredProduct == null) && (searchedProducts != null))
+            {
+                return searchedProducts;
+            } 
+            return null;
+        }
+
+
+        
+
         // Check si le gpu est en stock
         static bool SearchGpu(List<GraphicsCard> gpus, string pathAndFile)
         {
+            if (gpus.Count > 1)
+            {
+                Console.WriteLine("Problème avec l'API");
+            }
+
             foreach (var gpu in gpus)
             {
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
@@ -267,8 +245,7 @@ namespace TonyM
                 {
                     Console.WriteLine(gpu.displayName + " : " + gpu.prdStatus);
                 }
-            }
-            
+            }       
 
             return false;
         }
@@ -296,14 +273,13 @@ namespace TonyM
 
             // ---------------Recherche des RTX FE-------------------------------------------------
             string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
-            //string urlBase = "https://cctry.000webhostapp.com/";
+
             while (true)
             {
                 Thread.Sleep(REFRESH);
                 Console.Clear();
-
                 DisplayGpuWanted(gpusWanted);
-                DateTime t1 = DateTime.Now;
+
                 for (int i = gpusWanted.Count - 1; i >= 0; i--)
                 {
 
@@ -319,9 +295,6 @@ namespace TonyM
                     }
 
                 }
-                DateTime t2 = DateTime.Now;
-                var diff = (int)((t2 - t1).TotalMilliseconds);  //1s = 1000ms
-                Console.WriteLine("Durée (ms) : " + diff);
 
                 if (File.Exists(dropFile))
                 {
