@@ -221,11 +221,6 @@ namespace TonyM
         // Check si le gpu est en stock
         static bool SearchGpu(List<GraphicsCard> gpus, string pathAndFile)
         {
-            if (gpus.Count > 1)
-            {
-                Console.WriteLine("Problème avec l'API");
-            }
-
             GraphicsCard gpu = gpus.First();
 
                 string link = gpu.retailers.Select(g => g.purchaseLink).ToList().First();
