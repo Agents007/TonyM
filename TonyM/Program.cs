@@ -34,7 +34,7 @@ namespace TonyM
     {
         static string CreateDropFile()
         {
-            var path = "Drop";
+            string path = "Drop";
             string filename = "drops.txt";
 
             if (!Directory.Exists(path))
@@ -158,7 +158,7 @@ namespace TonyM
         // Récupération API
         static JsonDocument ConnectionApi(string url)
         {
-            var webClient = new WebClient();
+            using var webClient = new WebClient();
             webClient.Headers.Add("Accept", "application/json");
             webClient.Headers.Add("pragma", "no-cache");
             webClient.Headers.Add("cache-control", "no-cache");
