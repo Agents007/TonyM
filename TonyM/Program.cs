@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace TonyM
@@ -60,10 +59,10 @@ namespace TonyM
             File.AppendAllText(pathAndFile, drop);
         }
 
-        static void DisplayGpuWanted(List<string> gpuWanted)
+        static void DisplayGpuWanted(Dictionary<string,string> gpuWanted)
         {
             Console.Write("-- VOTRE SELECTION --\n");
-            Console.WriteLine(String.Join(", ", gpuWanted.OrderBy(o => o)).Replace("NVIDIA RTX ", ""));
+            Console.WriteLine(String.Join(", ", gpuWanted.Keys.OrderBy(o => o)).Replace("NVIDIA RTX ", "")); ;
             Console.WriteLine();
             Console.WriteLine("-- VERIFICATION DES STOCKS --");
         }
@@ -95,8 +94,10 @@ namespace TonyM
         }
 
 
+
+
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
-        static List<string> GetGpuWanted(List<GraphicsCard> gpusObj)
+        static Dictionary<string, string> GetGpuWanted(List<GraphicsCard> gpusObj, string urlBase)
         {
             List<string> gpusAvailable = gpusObj.Select(g => g.DisplayName).OrderBy(o => o).ToList();
             for (int i = 0; i < gpusAvailable.Count; i++)
@@ -105,7 +106,7 @@ namespace TonyM
             }
             Console.WriteLine("Choix 10 : SELECTION TERMINEE\n");
 
-            List<string> gpusUserSelect = new();
+            Dictionary<string, string> gpusUserSelect = new();
             while (true)
             {
                 Console.Write("Votre choix : ");
@@ -115,14 +116,15 @@ namespace TonyM
                     int choiceInt = int.Parse(choice);
                     if ((choiceInt > 0) && (choiceInt < (gpusAvailable.Count + 1)))
                     {
-                        if (gpusUserSelect.Contains(gpusAvailable[choiceInt - 1]))
+                        if (gpusUserSelect.ContainsKey(gpusAvailable[choiceInt - 1]))
                         {
                             Console.WriteLine("Ce GPU fait déjà parti de votre sélection\n");
                         }
                         else
                         {
-                            gpusUserSelect.Add(gpusAvailable[choiceInt - 1].Replace("NVIDIA ", ""));
-                            Console.WriteLine(gpusAvailable[choiceInt - 1] + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
+                            string gpuName = gpusAvailable[choiceInt - 1].Replace("NVIDIA ", "");
+                            gpusUserSelect.Add(gpuName, urlBase + gpuName.Replace(" ", "%20"));
+                            Console.WriteLine(gpuName + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
                     else if ((choiceInt == 10) && (gpusUserSelect.Count > 0))
@@ -139,7 +141,7 @@ namespace TonyM
                     Console.WriteLine("Erreur : Vous devez entrer un nombre\n");
                 }
             }
-            return gpusUserSelect.OrderByDescending(o => o).ToList();
+            return gpusUserSelect;
         }
 
 
@@ -227,9 +229,11 @@ namespace TonyM
 
 
 
+
         static void Main(string[] args)
         {
             const string URL_INIT = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
+            string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
             const int REFRESH = 1000;
 
 
@@ -239,33 +243,39 @@ namespace TonyM
             List<GraphicsCard> gpusInit = GenerateGpu(connectionInit);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
-            List<string> gpusWanted = GetGpuWanted(gpusInit);
+
+            Dictionary<string, string> gpusWanted = GetGpuWanted(gpusInit, URL_BASE);
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
             // ----------------------Fin Initialisation--------------------------------------------------------------------
 
 
-            // ---------------Recherche des RTX FE-------------------------------------------------
-            string urlBase = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
+            // ---------------Recherche des RTX FE-------------------------------------------------       
             while (true)
             {
                 Thread.Sleep(REFRESH);
                 Console.Clear();
                 DisplayGpuWanted(gpusWanted);
 
-                for (int i = gpusWanted.Count - 1; i >= 0; i--)
+                DateTime t1 = DateTime.Now;
+
+                foreach (var gpuW in gpusWanted)
                 {
-                    string urlGpu = urlBase + gpusWanted[i].Replace(" ", "%20");
-                    using JsonDocument connection = ConnectionApi(urlGpu);
-                    List<GraphicsCard> gpus = GenerateGpu(connection);
-                    bool gpuDrop = SearchGpu(gpus, dropFile);
+                    using JsonDocument connection = ConnectionApi(gpuW.Value);
+                    List<GraphicsCard> gpuGenerated = GenerateGpu(connection);
+                    bool gpuDrop = SearchGpu(gpuGenerated, dropFile);
 
                     if (gpuDrop)
                     {
-                        gpusWanted.RemoveAt(i);
+                        gpusWanted.Remove(gpuW.Key);
                     }
                 }
+
+
+                DateTime t2 = DateTime.Now;
+                var diff = t2 - t1;
+                Console.WriteLine(diff.TotalMilliseconds);
 
                 if (File.Exists(dropFile))
                 {
