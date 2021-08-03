@@ -150,12 +150,20 @@ namespace TonyM
         {
             using WebClient webClient = new();
             webClient.Headers.Add("Accept", "application/json");
+            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
             webClient.Headers.Add("cache-control", "no-cache, no-store, must-revalidate");
             webClient.Headers.Add("pragma", "no-cache");
-            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
             try
             {
                 string json = webClient.DownloadString(url);
+
+
+                //WebHeaderCollection myWebHeaderCollection = webClient.ResponseHeaders;
+                //for (int i = 0; i < myWebHeaderCollection.Count; i++)
+                //    Console.WriteLine("\t" + myWebHeaderCollection.GetKey(i) + " = " + myWebHeaderCollection.Get(i));
+
+
+
                 var jsonParse = JsonDocument.Parse(json);
                 return jsonParse;
             }
@@ -270,6 +278,7 @@ namespace TonyM
                     {
                         gpusWanted.Remove(gpuW.Key);
                     }
+
                 }
 
 
