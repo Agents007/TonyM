@@ -4,8 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace TonyM
 {
@@ -49,6 +50,7 @@ namespace TonyM
 
             return pathAndFile;
         }
+
         static void WriteDrop(string pathAndFile, string name, string link)
         {
             DateTime date = DateTime.Now;
@@ -155,27 +157,18 @@ namespace TonyM
 
 
         // Récupération API
-        static JsonDocument ConnectionApi(string url)
+        static async Task<JsonDocument> ConnectionApi(string url)
         {
-            using WebClient webClient = new();
-            webClient.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
-            webClient.Headers.Add("Accept", "application/json");
-            webClient.Headers.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
-            webClient.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-            webClient.Headers.Add("Pragma", "no-cache");
-            
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.DefaultRequestHeaders.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
+            client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+            client.DefaultRequestHeaders.Add("Pragma", "no-cache");
+
             try
             {
                 var timestamp = Timestamp();
-                string json = webClient.DownloadString(url + "&timestamp=" + timestamp);
-                
-                //Console.WriteLine(url + "&timestamp=" + timestamp);
-                //Reponse du serveur requete HTTP
-                //WebHeaderCollection myWebHeaderCollection = webClient.ResponseHeaders;
-                //for (int i = 0; i < myWebHeaderCollection.Count; i++)
-                //Console.WriteLine("\t" + myWebHeaderCollection.GetKey(i) + " = " + myWebHeaderCollection.Get(i));
-
-
+                string json = await client.GetStringAsync(url + "&timestamp=" + timestamp);
                 var jsonParse = JsonDocument.Parse(json);
                 return jsonParse;
             }
@@ -242,15 +235,15 @@ namespace TonyM
                 else
                 {
                     Console.WriteLine(gpu.DisplayName + " : " + gpu.PrdStatus);
-                }     
+                    return false;
+                }
 
-            return false;
         }
 
 
 
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             const string URL_INIT = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
             string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
@@ -259,7 +252,7 @@ namespace TonyM
 
             // ---------------Premier lancement de l'application-------------------------------------------------
             string dropFile = CreateDropFile();
-            using JsonDocument connectionInit = ConnectionApi(URL_INIT);
+            using JsonDocument connectionInit = await ConnectionApi(URL_INIT);
             List<GraphicsCard> gpusInit = GenerateGpu(connectionInit);
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
@@ -274,34 +267,29 @@ namespace TonyM
             // ---------------Recherche des RTX FE-------------------------------------------------       
             while (true)
             {
-                Thread.Sleep(REFRESH);
+                await Task.Delay(REFRESH);
                 Console.Clear();
+
                 DisplayGpuWanted(gpusWanted);
+                if (File.Exists(dropFile))
+                    DisplayOldDrop(dropFile);
 
-                DateTime t1 = DateTime.Now;
+                //DateTime t1 = DateTime.Now;
 
-                foreach (var gpuW in gpusWanted)
+                IEnumerable<Task> tasks = gpusWanted.Select(async gpuW =>
                 {
-                    using JsonDocument connection = ConnectionApi(gpuW.Value);
+                    using JsonDocument connection = await ConnectionApi(gpuW.Value);
                     List<GraphicsCard> gpuGenerated = GenerateGpu(connection);
                     bool gpuDrop = SearchGpu(gpuGenerated, dropFile);
-
                     if (gpuDrop)
-                    {
                         gpusWanted.Remove(gpuW.Key);
-                    }
+                });
 
-                }
+                await Task.WhenAll(tasks);
 
-
-                DateTime t2 = DateTime.Now;
-                var diff = t2 - t1;
-                Console.WriteLine(diff.TotalMilliseconds);
-
-                if (File.Exists(dropFile))
-                {
-                    DisplayOldDrop(dropFile);
-                }
+                //DateTime t2 = DateTime.Now;
+                //var diff = t2 - t1;
+                //Console.WriteLine(diff.TotalMilliseconds);
 
                 if (gpusWanted.Count == 0)
                 {
