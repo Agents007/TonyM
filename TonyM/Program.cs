@@ -93,6 +93,15 @@ namespace TonyM
             }
         }
 
+        static double Timestamp()
+        {
+            DateTime tBase = new(2018, 06, 14); //Champion !!!
+            DateTime tNow = DateTime.Now;
+            TimeSpan tCal = tNow - tBase;
+            double timestamp = Math.Round(tCal.TotalSeconds);
+            return timestamp;
+        }
+
 
 
 
@@ -149,19 +158,22 @@ namespace TonyM
         static JsonDocument ConnectionApi(string url)
         {
             using WebClient webClient = new();
+            webClient.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
             webClient.Headers.Add("Accept", "application/json");
-            webClient.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
-            webClient.Headers.Add("cache-control", "no-cache, no-store, must-revalidate");
-            webClient.Headers.Add("pragma", "no-cache");
+            webClient.Headers.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
+            webClient.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+            webClient.Headers.Add("Pragma", "no-cache");
+            
             try
             {
-                string json = webClient.DownloadString(url);
-
-
+                var timestamp = Timestamp();
+                string json = webClient.DownloadString(url + "&timestamp=" + timestamp);
+                
+                //Console.WriteLine(url + "&timestamp=" + timestamp);
+                //Reponse du serveur requete HTTP
                 //WebHeaderCollection myWebHeaderCollection = webClient.ResponseHeaders;
                 //for (int i = 0; i < myWebHeaderCollection.Count; i++)
-                //    Console.WriteLine("\t" + myWebHeaderCollection.GetKey(i) + " = " + myWebHeaderCollection.Get(i));
-
+                //Console.WriteLine("\t" + myWebHeaderCollection.GetKey(i) + " = " + myWebHeaderCollection.Get(i));
 
 
                 var jsonParse = JsonDocument.Parse(json);
