@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -58,23 +59,33 @@ namespace TonyM
 
             string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
             string drop = dateStr + " : " + name.Replace("NVIDIA RTX ", "") + " -> " + link + "\n";
-            File.AppendAllText(pathAndFile, drop);
-        }
 
-        static void DisplayGpuWanted(Dictionary<string,string> gpuWanted)
-        {
-            Console.Write("-- VOTRE SELECTION --\n");
-            Console.WriteLine(String.Join(", ", gpuWanted.Keys.OrderBy(o => o)).Replace("NVIDIA RTX ", "")); ;
-            Console.WriteLine();
-            Console.WriteLine("-- VERIFICATION DES STOCKS --");
+            while (true)
+            {
+                try
+                {
+                    File.AppendAllText(pathAndFile, drop);
+                    break;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
         }
 
         static void DisplayOldDrop(string pathAndFile)
         {
-            Console.WriteLine();
             Console.WriteLine("-- HISTORIQUE DES DROPS --");
             string oldDrop = File.ReadAllText(pathAndFile);
             Console.WriteLine(oldDrop);
+        }
+
+        static void DisplayGpuWanted(List<GpuWanted> gpuWanted)
+        {
+            Console.Write("-- VOTRE SELECTION --\n");
+            Console.WriteLine(String.Join(", ", gpuWanted.OrderBy(o => o.Name).Select(g => g.Name)));
+            Console.WriteLine();
         }
 
         static void OpenBuyPage(string link)
@@ -108,7 +119,7 @@ namespace TonyM
 
 
         // Constitution de la liste des GPU Visible via l'API, et la liste de sélection utilisateur
-        static Dictionary<string, string> GetGpuWanted(List<GraphicsCard> gpusObj, string urlBase)
+        static List<GpuWanted> GetGpuWanted(List<GraphicsCard> gpusObj, string urlBase)
         {
             List<string> gpusAvailable = gpusObj.Select(g => g.DisplayName).OrderBy(o => o).ToList();
             for (int i = 0; i < gpusAvailable.Count; i++)
@@ -117,7 +128,9 @@ namespace TonyM
             }
             Console.WriteLine("Choix 10 : SELECTION TERMINEE\n");
 
-            Dictionary<string, string> gpusUserSelect = new();
+            //Dictionary<string, string> gpusUserSelect = new();
+            List<GpuWanted> gpusWanted = new();
+
             while (true)
             {
                 Console.Write("Votre choix : ");
@@ -127,18 +140,19 @@ namespace TonyM
                     int choiceInt = int.Parse(choice);
                     if ((choiceInt > 0) && (choiceInt < (gpusAvailable.Count + 1)))
                     {
-                        if (gpusUserSelect.ContainsKey(gpusAvailable[choiceInt - 1]))
+                        string gpuName = gpusAvailable[choiceInt - 1].Replace("NVIDIA ", "");
+                        if (gpusWanted.Any(g => g.Name == gpuName))
                         {
                             Console.WriteLine("Ce GPU fait déjà parti de votre sélection\n");
                         }
                         else
                         {
-                            string gpuName = gpusAvailable[choiceInt - 1].Replace("NVIDIA ", "");
-                            gpusUserSelect.Add(gpuName, urlBase + gpuName.Replace(" ", "%20"));
+                            GpuWanted gpu = new(gpuName, urlBase + gpuName.Replace(" ", "%20"), false);
+                            gpusWanted.Add(gpu);
                             Console.WriteLine(gpuName + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
-                    else if ((choiceInt == 10) && (gpusUserSelect.Count > 0))
+                    else if ((choiceInt == 10) && (gpusWanted.Count > 0))
                     {
                         break;
                     }
@@ -152,14 +166,14 @@ namespace TonyM
                     Console.WriteLine("Erreur : Vous devez entrer un nombre\n");
                 }
             }
-            return gpusUserSelect;
+            return gpusWanted;
         }
 
 
         // Récupération API
         static async Task<JsonDocument> ConnectionApi(string url)
         {
-            using HttpClient client = new HttpClient();
+            using HttpClient client = new();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
             client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -168,7 +182,29 @@ namespace TonyM
             try
             {
                 var timestamp = Timestamp();
-                string json = await client.GetStringAsync(url + "&timestamp=" + timestamp);
+                string json = await client.GetStringAsync(url + "&timestamp=" + timestamp); // + "&timestamp=" + timestamp
+                var jsonParse = JsonDocument.Parse(json);
+                return jsonParse;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erreur : " + ex.Message);
+                return null;
+            }
+        }
+
+        static async Task<JsonDocument> ConnectionApi2(string url)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.DefaultRequestHeaders.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
+            client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+            client.DefaultRequestHeaders.Add("Pragma", "no-cache");
+
+            try
+            {
+                var timestamp = Timestamp();
+                string json = await client.GetStringAsync(url + ".json"); // + "&timestamp=" + timestamp
                 var jsonParse = JsonDocument.Parse(json);
                 return jsonParse;
             }
@@ -227,7 +263,7 @@ namespace TonyM
 
                 if ((gpu.PrdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
                 {
-                    OpenBuyPage(link);
+                    //OpenBuyPage(link);
                     SoundAlert();
                     WriteDrop(pathAndFile, gpu.DisplayName, link);
                     return true;
@@ -246,7 +282,8 @@ namespace TonyM
         static async Task Main(string[] args)
         {
             const string URL_INIT = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
-            string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
+            //string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
+            string URL_BASE = "https://cctry.000webhostapp.com/";
             const int REFRESH = 1000;
 
 
@@ -257,11 +294,11 @@ namespace TonyM
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
 
-            Dictionary<string, string> gpusWanted = GetGpuWanted(gpusInit, URL_BASE);
+            var gpusWanted = GetGpuWanted(gpusInit, URL_BASE);
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
-            // ----------------------Fin Initialisation--------------------------------------------------------------------
+            // ----------------------Fin Initialisation--------------------------------------------
 
 
             // ---------------Recherche des RTX FE-------------------------------------------------       
@@ -274,22 +311,29 @@ namespace TonyM
                 if (File.Exists(dropFile))
                     DisplayOldDrop(dropFile);
 
-                //DateTime t1 = DateTime.Now;
+                DateTime t1 = DateTime.Now;
+
+                Console.WriteLine("-- VERIFICATION DES STOCKS --");
+
+                gpusWanted = gpusWanted.Where(g => g.Status == false).ToList();
 
                 IEnumerable<Task> tasks = gpusWanted.Select(async gpuW =>
                 {
-                    using JsonDocument connection = await ConnectionApi(gpuW.Value);
+                    using JsonDocument connection = await ConnectionApi2(gpuW.ApiLink);
                     List<GraphicsCard> gpuGenerated = GenerateGpu(connection);
                     bool gpuDrop = SearchGpu(gpuGenerated, dropFile);
                     if (gpuDrop)
-                        gpusWanted.Remove(gpuW.Key);
+                    {
+                        gpuW.Status = true;
+                    }
                 });
 
                 await Task.WhenAll(tasks);
 
-                //DateTime t2 = DateTime.Now;
-                //var diff = t2 - t1;
-                //Console.WriteLine(diff.TotalMilliseconds);
+
+                DateTime t2 = DateTime.Now;
+                var diff = t2 - t1;
+                Console.WriteLine(diff.TotalMilliseconds);
 
                 if (gpusWanted.Count == 0)
                 {
