@@ -57,7 +57,7 @@ namespace TonyM
             CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
 
             string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
-            string drop = dateStr + " : " + name.Replace("NVIDIA RTX ", "") + " -> " + link + "\n";
+            string drop = dateStr + " : " + name.Replace("NVIDIA ", "") + " -> " + link + "\n";
 
             while (true)
             {
@@ -127,7 +127,6 @@ namespace TonyM
             }
             Console.WriteLine("Choix 10 : SELECTION TERMINEE\n");
 
-            //Dictionary<string, string> gpusUserSelect = new();
             List<GpuWanted> gpusWanted = new();
 
             while (true)
@@ -180,30 +179,8 @@ namespace TonyM
 
             try
             {
-                var timestamp = Timestamp();
-                string json = await client.GetStringAsync(url + "&timestamp=" + timestamp); // + "&timestamp=" + timestamp
-                var jsonParse = JsonDocument.Parse(json);
-                return jsonParse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erreur : " + ex.Message);
-                return null;
-            }
-        }
-
-        static async Task<JsonDocument> ConnectionApi2(string url)
-        {
-            using HttpClient client = new();
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.DefaultRequestHeaders.Add("user-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36 OPR/77.0.4054.277");
-            client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-            client.DefaultRequestHeaders.Add("Pragma", "no-cache");
-
-            try
-            {
-                var timestamp = Timestamp();
-                string json = await client.GetStringAsync(url + ".json"); // + "&timestamp=" + timestamp
+                double timestamp = Timestamp();
+                string json = await client.GetStringAsync(url + "&timestamp=" + timestamp);
                 var jsonParse = JsonDocument.Parse(json);
                 return jsonParse;
             }
@@ -257,32 +234,28 @@ namespace TonyM
         static bool SearchGpu(List<GraphicsCard> gpus, string pathAndFile)
         {
             GraphicsCard gpu = gpus.First();
+            string link = gpu.Retailers.Select(g => g.PurchaseLink).ToList().First();
 
-                string link = gpu.Retailers.Select(g => g.PurchaseLink).ToList().First();
-
-                if ((gpu.PrdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
-                {
-                    //OpenBuyPage(link);
-                    SoundAlert();
-                    WriteDrop(pathAndFile, gpu.DisplayName, link);
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine(gpu.DisplayName + " : " + gpu.PrdStatus);
-                    return false;
-                }
+            if ((gpu.PrdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
+            {
+                OpenBuyPage(link);
+                SoundAlert();
+                WriteDrop(pathAndFile, gpu.DisplayName, link);
+                return true;
+            }
+            else
+            {
+                Console.WriteLine(gpu.DisplayName + " : " + gpu.PrdStatus);
+                return false;
+            }
 
         }
-
-
 
 
         static async Task Main(string[] args)
         {
             const string URL_INIT = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=RTX%203090,RTX%203080%20Ti,RTX%203080,RTX%203070%20Ti,RTX%203070,RTX%203060%20Ti,RTX%203060&gpu_filter=RTX%203090~12,RTX%203080%20Ti~7,RTX%203080~16,RTX%203070%20Ti~3,RTX%203070~18,RTX%203060%20Ti~8,RTX%203060~2,RTX%202080%20SUPER~1,RTX%202080~0,RTX%202070%20SUPER~0,RTX%202070~0,RTX%202060~6,GTX%201660%20Ti~0,GTX%201660%20SUPER~9,GTX%201660~8,GTX%201650%20Ti~0,GTX%201650%20SUPER~3,GTX%201650~17";
-            //string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
-            string URL_BASE = "https://cctry.000webhostapp.com/";
+            const string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
             const int REFRESH = 1000;
 
 
@@ -308,9 +281,9 @@ namespace TonyM
 
                 DisplayGpuWanted(gpusWanted);
                 if (File.Exists(dropFile))
+                {
                     DisplayOldDrop(dropFile);
-
-                DateTime t1 = DateTime.Now;
+                }
 
                 Console.WriteLine("-- VERIFICATION DES STOCKS --");
 
@@ -318,7 +291,7 @@ namespace TonyM
 
                 IEnumerable<Task> tasks = gpusWanted.Select(async gpuW =>
                 {
-                    using JsonDocument connection = await ConnectionApi2(gpuW.ApiLink);
+                    using JsonDocument connection = await ConnectionApi(gpuW.ApiLink);
                     List<GraphicsCard> gpuGenerated = GenerateGpu(connection);
                     bool gpuDrop = SearchGpu(gpuGenerated, dropFile);
                     if (gpuDrop)
@@ -328,11 +301,6 @@ namespace TonyM
                 });
 
                 await Task.WhenAll(tasks);
-
-
-                DateTime t2 = DateTime.Now;
-                var diff = t2 - t1;
-                Console.WriteLine(diff.TotalMilliseconds);
 
                 if (gpusWanted.Count == 0)
                 {
