@@ -4,16 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TonyM
+namespace TonyM.Models
 {
-    public class GraphicsCard
-    {
-        public string DisplayName { get; set; }
-        public string PrdStatus { get; set; }
-        public List<Retailer> Retailers { get; set; }
-        public DateTime LastAvailability { get; set; }
-    }  
-
     public class Retailer
     {
         public string SalePrice { get; set; }
