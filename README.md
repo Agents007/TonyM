@@ -1,5 +1,7 @@
 # TonyM
+Bot de notification Nvidia Founder Edition France
 TonyM notifie la présence de cartes graphiques Nvidia FE chez le revendeur LDLC
+
 
 L'application vérifie le stock chaque seconde. 
 
