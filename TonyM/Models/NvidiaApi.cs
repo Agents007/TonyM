@@ -13,7 +13,6 @@ namespace TonyM.Modules
             this.Url = url;
         }
 
-
         public async Task<string> Connection()
         {
             using HttpClient client = new();

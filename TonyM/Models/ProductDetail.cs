@@ -4,9 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using TonyM.Modules;
 
 namespace TonyM.Models
@@ -52,37 +50,29 @@ namespace TonyM.Models
             return customName;
         }
 
-        public string GetLink()
-        {
-            string link = Retailers.Select(g => g.PurchaseLink).ToList().First();
-            return link;
-        }
-
-        public static void OpenBuyPage(string link)
+        public void OpenBuyPage()
         {
             ProcessStartInfo psi = new()
             {
                 UseShellExecute = true,
-                FileName = link
+                FileName = Retailers.First().DirectPurchaseLink
             };
             Process.Start(psi);
         }
 
-        public void WriteDrop(string link)
+        public void WriteDrop()
         {
             DateTime date = DateTime.Now;
             CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
 
-            string pathAndFile = GlobalMethod.GetDropFile();
-
             string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
-            string drop = dateStr + " : " + DisplayName.Replace("NVIDIA ", "") + " -> " + link + "\n";
+            string drop = dateStr + " : " + DisplayName.Replace("NVIDIA ", "") + " -> " + Retailers.First().DirectPurchaseLink + "\n";
 
             while (true)
             {
                 try
                 {
-                    File.AppendAllText(pathAndFile, drop);
+                    File.AppendAllText(DropFile.FileName, drop);
                     break;
                 }
                 catch
@@ -94,13 +84,13 @@ namespace TonyM.Models
 
         public bool SearchStock()
         {
-            string link = GetLink();
+            string link = Retailers.First().DirectPurchaseLink;
 
             if ((PrdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
             {
-                OpenBuyPage(link);
+                OpenBuyPage();
                 GlobalMethod.SoundAlert();
-                WriteDrop(link);
+                WriteDrop();
                 return true;
             }
             else
