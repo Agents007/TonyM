@@ -6,7 +6,7 @@ namespace TonyM.Modules
     {
         public static double Timestamp()
         {
-            DateTime tBase = new(2018, 06, 14); //Champion !!!
+            DateTime tBase = new(2018, 06, 14); //Champion !!!!
             DateTime tNow = DateTime.Now;
             TimeSpan tCal = tNow - tBase;
             double timestamp = Math.Round(tCal.TotalSeconds);
