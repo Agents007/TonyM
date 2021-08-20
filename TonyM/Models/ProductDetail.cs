@@ -68,11 +68,16 @@ namespace TonyM.Models
             string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
             string drop = dateStr + " : " + DisplayName.Replace("NVIDIA ", "") + " -> " + Retailers.First().DirectPurchaseLink + "\n";
 
+            if (!Directory.Exists(DropFile.Folder))
+            {
+                Directory.CreateDirectory(DropFile.Folder);
+            }
+
             while (true)
             {
                 try
                 {
-                    File.AppendAllText(DropFile.FileName, drop);
+                    File.AppendAllText(DropFile.PathAndFile, drop);
                     break;
                 }
                 catch

@@ -24,7 +24,7 @@ namespace TonyM.Models
 
         public static void Display()
         {
-            Console.WriteLine("\n== HISTORIQUE DES DROPS ==");
+            Console.WriteLine("== HISTORIQUE DES DROPS ==");
             string oldDrop = File.ReadAllText(PathAndFile);
             Console.WriteLine(oldDrop);
         }
