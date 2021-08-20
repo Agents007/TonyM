@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using TonyM.Models;
 
 namespace TonyM.Modules
 {
@@ -19,7 +14,7 @@ namespace TonyM.Modules
         }
 
 
-        public async Task<JsonDocument> Connection()
+        public async Task<string> Connection()
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -31,8 +26,7 @@ namespace TonyM.Modules
             {
                 double timestamp = GlobalMethod.Timestamp();
                 string json = await client.GetStringAsync(Url + "&timestamp=" + timestamp);
-                var jsonParse = JsonDocument.Parse(json);
-                return jsonParse;
+                return json;
             }
             catch (Exception ex)
             {

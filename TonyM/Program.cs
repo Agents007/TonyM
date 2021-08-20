@@ -19,21 +19,23 @@ namespace TonyM
             const string URL_BASE = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
             const int REFRESH = 1000;
 
-            string path = "Drop";
-            string filename = "drops.txt";
-            string dropFile = Path.Combine(path, filename);
-
+            string pathAndFile = GlobalMethod.GetDropFile();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
             // ---------------Premier lancement de l'application-------------------------------------------------
-            GlobalMethod.CreateDropFile(path);
+            GlobalMethod.DeleteDropFile();
             var client = new NvidiaApi(URL_INIT);
-            using var jsonParse = await client.Connection();
-            List<GraphicsCard> gpusAvailable = CustomDeserialize.DeserializeJson(jsonParse);
+            string jsonStr = await client.Connection();
+            Root gpuObj = JsonSerializer.Deserialize<Root>(jsonStr, options);
+
+            List<ProductDetail> gpusAvailable = gpuObj.SearchedProducts.ProductDetails;
+            gpusAvailable.Add(gpuObj.SearchedProducts.FeaturedProduct);
+            gpusAvailable = gpusAvailable.Where(g => g.IsFounderEdition).ToList();
 
             Console.WriteLine("Salut c'est Tony. J'ai des contacts dans la Mafia.\n" +
                 "\nQuelle carte graphique recherches tu ? (Entrer le numéro correspondant à la carte graphique souhaitée)");
 
-            List<GraphicsCard> gpusUser = UserSelection.getUserSelection(gpusAvailable);
+            List<ProductDetail> gpusUser = UserSelection.GetSelection(gpusAvailable);
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
@@ -41,39 +43,40 @@ namespace TonyM
 
 
 
-            // ---------------Recherche des RTX FE-------------------------------------------------       
+            //// ---------------Recherche des RTX FE-------------------------------------------------       
             while (true)
             {
                 await Task.Delay(REFRESH);
                 Console.Clear();
 
-                Console.WriteLine("-- VOTRE SELECTION --");
-                string shortName = String.Join(",", gpusUser.Select(g => g.DisplayName).ToList());
+                Console.WriteLine("== VOTRE SELECTION ==");
+                string shortName = String.Join(", ", gpusUser.Select(g => g.DisplayName).ToList());
                 Console.WriteLine(shortName.Replace("NVIDIA RTX ", ""));
 
-                if (File.Exists(dropFile))
-                    GlobalMethod.DisplayOldDrop(dropFile);
+                if (File.Exists(pathAndFile))
+                    GlobalMethod.DisplayOldDrop(pathAndFile);
 
                 Console.WriteLine();
                 Console.WriteLine("-- VERIFICATION DES STOCKS --");
 
-                gpusUser = gpusUser.Where(g => g.Wanted == true).ToList();
+                gpusUser = gpusUser.Where(g => g.UserWanted == true).ToList();
 
                 IEnumerable<Task> tasks = gpusUser.Select(async gpuUser =>
                 {
                     var client = new NvidiaApi(URL_BASE + gpuUser.NameForUrl());
-                    using var jsonParse = await client.Connection();
-                    GraphicsCard gpu = CustomDeserialize.DeserializeJson(jsonParse).First();
-                    bool drop = gpu.SearchStock(dropFile);
+                    string jsonStr = await client.Connection();
+                    Root gpuObj = JsonSerializer.Deserialize<Root>(jsonStr, options);
+                    var drop = gpuObj.GetGpu();
                     if (drop)
-                        gpuUser.Wanted = false;
+                        gpuUser.UserWanted = false;
                 });
                 await Task.WhenAll(tasks);
 
                 if (gpusUser.Count == 0)
                 {
                     Console.Clear();
-                    Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies.\nMerci de relancer l'application pour une nouvelle recherche");
+                    Console.WriteLine("Votre sélection est vide, un drop a déjà eu lieu pour les références choisies." +
+                        "\nMerci de relancer l'application pour une nouvelle recherche");
                     break;
                 }
             }

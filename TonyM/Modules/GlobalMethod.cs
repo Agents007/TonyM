@@ -22,12 +22,19 @@ namespace TonyM.Modules
             return timestamp;
         }
 
-        public static void CreateDropFile(string path)
+        public static string GetDropFile()
         {
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-            else
-                Directory.Delete(path);
+            string path = "drop";
+            string filename = "drops.txt";
+            string dropFile = Path.Combine(path, filename);
+            return dropFile;
+        }
+
+        public static void DeleteDropFile()
+        {
+            string pathAndFile = GetDropFile();
+            if (File.Exists(pathAndFile))
+                File.Delete(pathAndFile);
         }
 
         public static void DisplayOldDrop(string pathAndFile)

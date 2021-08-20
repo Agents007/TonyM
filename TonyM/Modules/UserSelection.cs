@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TonyM.Models;
 
 namespace TonyM.Modules
 {
-    class UserSelection
+    public class UserSelection
     {
-        public static List<GraphicsCard> getUserSelection(List<GraphicsCard> gpusAvailable)
+        public static List<ProductDetail> GetSelection(List<ProductDetail> gpusAvailable)
         {
             gpusAvailable = gpusAvailable.OrderBy(g => g.DisplayName).ToList();
 
@@ -31,20 +29,20 @@ namespace TonyM.Modules
                     if ((choiceInt > 0) && (choiceInt < (gpusAvailable.Count + 1)))
                     {
                         var gpu = gpusAvailable[choiceInt - 1];
-                        if (gpu.Wanted == true)
+                        if (gpu.UserWanted == true)
                         {
                             Console.WriteLine("Ce GPU fait déjà parti de votre sélection\n");
                         }
                         else
                         {
-                            gpu.Wanted = true;
+                            gpu.UserWanted = true;
                             Console.WriteLine(gpu.DisplayName + " ajoutée à la liste. Ajouter une autre carte ou terminer la sélection.\n");
                         }
                     }
-                    else if ((choiceInt == 10) && (gpusAvailable.Any(g => g.Wanted == true)))
+                    else if ((choiceInt == 10) && (gpusAvailable.Any(g => g.UserWanted == true)))
                     {
-                        List<GraphicsCard> gpusUser = gpusAvailable.Where(g => g.Wanted).ToList();
-                        return gpusUser;   
+                        List<ProductDetail> gpusUser = gpusAvailable.Where(g => g.UserWanted).ToList();
+                        return gpusUser;
                     }
                     else
                     {
