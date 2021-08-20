@@ -36,7 +36,6 @@ namespace TonyM
 
             Console.WriteLine();
             Console.WriteLine("Merci, je consulte Laurent");
-            // ----------------------Fin Initialisation--------------------------------------------
 
             // ---------------Recherche des RTX FE-------------------------------------------------       
             while (true)
