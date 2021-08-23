@@ -4,16 +4,9 @@ using System.Threading.Tasks;
 
 namespace TonyM.Modules
 {
-    class NvidiaApi
+    public static class NvidiaApi
     {
-        string Url { get; set; }
-
-        public NvidiaApi(string url)
-        {
-            this.Url = url;
-        }
-
-        public async Task<string> Connection()
+        public static async Task<string> Connection(string Url)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -21,17 +14,17 @@ namespace TonyM.Modules
             client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
             client.DefaultRequestHeaders.Add("Pragma", "no-cache");
 
+            string json = null;
             try
             {
                 double timestamp = GlobalMethod.Timestamp();
-                string json = await client.GetStringAsync(Url + "&timestamp=" + timestamp);
-                return json;
+                json = await client.GetStringAsync(Url + "&timestamp=" + timestamp);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Erreur : " + ex.Message);
-                return null;
             }
+            return json;
         }
     }
 }
