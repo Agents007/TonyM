@@ -54,14 +54,18 @@ namespace TonyM
                 gpusUser = gpusUser.Where(g => g.UserWanted == true).ToList();
 
                 IEnumerable<Task> tasks = gpusUser.Select(async gpuUser =>
-                {
-                    string jsonStr = await NvidiaApi.Connection(URL_BASE + gpuUser.NameForUrl());
-                    if (jsonStr is not null)
+                {                
+                    try
                     {
+                        string jsonStr = await NvidiaApi.Connection(URL_BASE + gpuUser.NameForUrl());
                         Root gpuObj = JsonSerializer.Deserialize<Root>(jsonStr, options);
                         var drop = gpuObj.GetGpu();
                         if (drop)
                             gpuUser.UserWanted = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erreur : " + ex.Message);
                     }
                 });
                 await Task.WhenAll(tasks);

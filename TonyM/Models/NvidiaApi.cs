@@ -14,16 +14,8 @@ namespace TonyM.Modules
             client.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store, must-revalidate");
             client.DefaultRequestHeaders.Add("Pragma", "no-cache");
 
-            string json = null;
-            try
-            {
-                double timestamp = GlobalMethod.Timestamp();
-                json = await client.GetStringAsync(Url + "&timestamp=" + timestamp);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erreur : " + ex.Message);
-            }
+            double timestamp = GlobalMethod.Timestamp();
+            string json = await client.GetStringAsync(Url + "&timestamp=" + timestamp);
             return json;
         }
     }
