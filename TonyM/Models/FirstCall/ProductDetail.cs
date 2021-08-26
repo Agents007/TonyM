@@ -41,8 +41,7 @@ namespace TonyM.Models
         public string OfferText { get; set; }
         public bool UserWanted { get; set; }
         public List<Retailer> Retailers { get; set; }
-        public List<ProductInfo> ProductInfo { get; set; }
-        public List<CompareProductInfo> CompareProductInfo { get; set; }
+        public List<Link> Links { get; set; }
 
         public string NameForUrl()
         {

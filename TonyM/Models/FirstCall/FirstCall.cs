@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace TonyM.Models
 {
-    public class Root
+    public class FirstCall
     {
         public SearchedProducts SearchedProducts { get; set; }
 
