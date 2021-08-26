@@ -20,31 +20,19 @@ namespace TonyM.Models
                 return Name.Replace("NVIDIA RTX ", "").Replace(" ", "%20");
             }
         }
-        public List<string> Links
+        public string Link
         {
             get
             {
-                return GenerateLink();
+                return "https://api.store.nvidia.com/partner/v1/feinventory?skus=" + Skuname + " &locale=FR";
             }
         }
-        public bool UsrWanted = true;
+        public bool UserWanted = true;
 
         public GraphicCard(string name, string skuname)
         {
             this.Name = name;
             this.Skuname = skuname;
         }
-
-        public List<string> GenerateLink()
-        {
-            List<string> links = new();
-            string fUrl = "https://api.nvidia.partners/edge/product/search?page=1&limit=9&locale=fr-fr&category=GPU&gpu=";
-            string sUrl = "https://api.store.nvidia.com/partner/v1/feinventory?skus=";
-            links.Add(fUrl + LightName);
-            links.Add(sUrl + Skuname + "&locale=FR");
-            return links;
-        }
-
-
     }
 }

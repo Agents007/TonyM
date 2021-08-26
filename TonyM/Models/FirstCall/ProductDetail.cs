@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using TonyM.Modules;
 
 namespace TonyM.Models
@@ -42,67 +37,6 @@ namespace TonyM.Models
         public bool UserWanted { get; set; }
         public List<Retailer> Retailers { get; set; }
         public List<Link> Links { get; set; }
-
-        public string NameForUrl()
-        {
-            string customName = DisplayName.Replace("NVIDIA ", "").Replace(" ", "%20");
-            return customName;
-        }
-
-        public void OpenBuyPage()
-        {
-            ProcessStartInfo psi = new()
-            {
-                UseShellExecute = true,
-                FileName = Retailers.First().DirectPurchaseLink
-            };
-            Process.Start(psi);
-        }
-
-        public void WriteDrop()
-        {
-            DateTime date = DateTime.Now;
-            CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
-
-            string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
-            string drop = dateStr + " : " + DisplayName.Replace("NVIDIA ", "") + " -> " + Retailers.First().DirectPurchaseLink + "\n";
-
-            if (!Directory.Exists(DropFile.Folder))
-            {
-                Directory.CreateDirectory(DropFile.Folder);
-            }
-
-            while (true)
-            {
-                try
-                {
-                    File.AppendAllText(DropFile.PathAndFile, drop);
-                    break;
-                }
-                catch
-                {
-                    Thread.Sleep(100);
-                }
-            }
-        }
-
-        public bool SearchStock()
-        {
-            string link = Retailers.First().DirectPurchaseLink;
-
-            if ((PrdStatus != "out_of_stock") && (!String.IsNullOrEmpty(link)))
-            {
-                OpenBuyPage();
-                GlobalMethod.SoundAlert();
-                WriteDrop();
-                return true;
-            }
-            else
-            {
-                Console.WriteLine(DisplayName + " : Pas de stock");
-                return false;
-            }
-        }
 
 
         public class FeaturedProduct : ProductDetail
