@@ -38,6 +38,10 @@ namespace TonyM
                 Console.WriteLine(gpu.Name);
                 Console.WriteLine(gpu.LightName);
                 Console.WriteLine(gpu.Skuname);
+                foreach (var gpul in gpu.Links)
+                {
+                    Console.WriteLine(gpul);
+                }
             }
 
 
