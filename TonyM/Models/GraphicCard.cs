@@ -20,7 +20,13 @@ namespace TonyM.Models
                 return Name.Replace("NVIDIA RTX ", "").Replace(" ", "%20");
             }
         }
-        public List<string> Links { get; set; }
+        public List<string> Links
+        {
+            get
+            {
+                return GenerateLink();
+            }
+        }
         public bool UsrWanted = true;
 
         public GraphicCard(string name, string skuname)
@@ -36,8 +42,7 @@ namespace TonyM.Models
             string sUrl = "https://api.store.nvidia.com/partner/v1/feinventory?skus=";
             links.Add(fUrl + LightName);
             links.Add(sUrl + Skuname + "&locale=FR");
-
-            NVGFT090 & timestamp = 5656 & locale = FR"
+            return links;
         }
 
 
