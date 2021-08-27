@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace TonyM.Models
 {
-    public class SecondCall
+    public class Call
     {
-        public bool success { get; set; }
-        public List<ListMap> listMap { get; set; }
+        public bool Success { get; set; }
+        public List<ListMap> ListMap { get; set; }
 
         public bool GetGpu()
         {
-            bool inStock = listMap.First().SearchStock();
+            bool inStock = ListMap.First().SearchStock();
             return inStock;
         }
     }

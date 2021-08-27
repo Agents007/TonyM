@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -13,15 +9,22 @@ namespace TonyM.Models
 {
     public class ListMap
     {
-        public string is_active { get; set; }
-        public string product_url { get; set; }
-        public string price { get; set; }
-        public string fe_sku { get; set; }
-        public string locale { get; set; }
+        public string Is_active { get; set; }
+        public string Product_url { get; set; }
+        public string Price { get; set; }
+        public string Fe_sku { get; set; }
+        public string Fe_name
+        {
+            get
+            {
+                return Fe_sku.Replace("NVGFT", "RTX 3").Replace("_FR", "").Replace("0T", "0 Ti");
+            }
+        }
+        public string Locale { get; set; }
 
         public bool SearchStock()
         {
-            if ((is_active != "false") && (!String.IsNullOrEmpty(product_url)))
+            if ((Is_active != "false") && (!String.IsNullOrEmpty(Product_url)))
             {
                 OpenBuyPage();
                 GlobalMethod.SoundAlert();
@@ -30,7 +33,7 @@ namespace TonyM.Models
             }
             else
             {
-                Console.WriteLine(fe_sku + " : Pas de stock");
+                Console.WriteLine(Fe_name + " : Pas de stock");
                 return false;
             }
         }
@@ -40,7 +43,7 @@ namespace TonyM.Models
             ProcessStartInfo psi = new()
             {
                 UseShellExecute = true,
-                FileName = product_url
+                FileName = Product_url
             };
             Process.Start(psi);
         }
@@ -51,7 +54,7 @@ namespace TonyM.Models
             CultureInfo cultureFrancais = CultureInfo.GetCultureInfo("fr-FR");
 
             string dateStr = date.ToString("dd/MM HH:mm:ss", cultureFrancais);
-            string drop = dateStr + " : " + fe_sku + product_url + "\n";
+            string drop = dateStr + " : " + Fe_name + " => " + Product_url + "\n";
 
             if (!Directory.Exists(DropFile.Folder))
             {

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using TonyM.Modules;
+﻿using System.Collections.Generic;
 
 namespace TonyM.Models
 {
@@ -36,8 +34,6 @@ namespace TonyM.Models
         public string OfferText { get; set; }
         public bool UserWanted { get; set; }
         public List<Retailer> Retailers { get; set; }
-        public List<Link> Links { get; set; }
-
 
         public class FeaturedProduct : ProductDetail
         {
